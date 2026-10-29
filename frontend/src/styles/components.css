@@ -162,7 +162,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 20% center;
+  object-position: 20% 25%; /* ancora mais perto do topo: a foto "desce" e a cabeça do aluno não fica colada na barra */
 }
 
 .hero-conteudo {
