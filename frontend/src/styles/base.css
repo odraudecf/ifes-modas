@@ -1,0 +1,121 @@
+/* Tokens visuais: a identidade do TCC original (verde Ifes, Poppins), agora centralizada em variáveis. */
+:root {
+  --verde-escuro: #00420c;   /* barra de navegação e rodapé */
+  --verde: #2f9e42;          /* ações, títulos, preços */
+  --verde-claro: #e6f3e8;    /* fundos de destaque suaves */
+  --vermelho: #c9242b;       /* o ponto da logo do Ifes; usado só em alertas e exclusão */
+  --papel: #eef0ec;          /* fundo das fotos de produto */
+  --tinta: #13261a;          /* texto principal */
+  --tinta-suave: #55645a;    /* texto secundário */
+  --borda: #d5dbd3;
+  --branco: #ffffff;
+
+  --fonte: 'Poppins', system-ui, sans-serif;
+  --fonte-marca: 'Montserrat', 'Poppins', sans-serif;
+
+  --raio: 8px;
+  --raio-grande: 14px;
+  --largura: 1120px;
+  --topo-altura: 64px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fonte);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--tinta);
+  background: var(--branco);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+p {
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto; /* width/height no HTML reservam espaço; aqui a proporção é mantida quando o CSS muda a largura */
+  display: block;
+}
+
+a {
+  color: var(--verde);
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--verde);
+  outline-offset: 2px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Link "Pular para o conteúdo": invisível até receber foco pelo teclado. */
+a.sr-only:focus {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 50;
+  width: auto;
+  height: auto;
+  clip: auto;
+  padding: 8px 14px;
+  background: var(--branco);
+  border-radius: var(--raio);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

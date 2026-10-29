@@ -1,122 +1,67 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect } from 'react'
+import { Link, Route, Routes, useLocation } from 'react-router-dom'
+import { RotaProtegida } from './auth/RotaProtegida.jsx'
+import { Topo } from './components/Topo.jsx'
+import { Rodape } from './components/Rodape.jsx'
+import { Vazio } from './components/Estados.jsx'
+import Inicio from './pages/Inicio.jsx'
+import Lojas from './pages/Lojas.jsx'
+import Loja from './pages/Loja.jsx'
+import Doacoes from './pages/Doacoes.jsx'
+import Sobre from './pages/Sobre.jsx'
+import Login from './pages/Login.jsx'
+import Cadastro from './pages/Cadastro.jsx'
+import Gerenciamento from './pages/Gerenciamento.jsx'
+import MinhasRoupas from './pages/MinhasRoupas.jsx'
+import EditarLoja from './pages/EditarLoja.jsx'
 
-function App() {
-  const [count, setCount] = useState(0)
+const TITULOS = {
+  '/': 'Ifes Modas',
+  '/lojas': 'Lojas · Ifes Modas',
+  '/doacoes': 'Doações · Ifes Modas',
+  '/sobre': 'Sobre · Ifes Modas',
+  '/login': 'Login · Ifes Modas',
+  '/cadastro': 'Cadastro · Ifes Modas',
+  '/gerenciamento': 'Gerenciamento · Ifes Modas',
+}
+
+export default function App() {
+  const { pathname } = useLocation()
+
+  // Ao trocar de página: volta ao topo e atualiza o título da aba.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    document.title = TITULOS[pathname] ?? 'Ifes Modas'
+  }, [pathname])
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      <a href="#conteudo" className="sr-only">Pular para o conteúdo</a>
+      <Topo />
+      <main id="conteudo">
+        <Routes>
+          <Route path="/" element={<Inicio />} />
+          <Route path="/lojas" element={<Lojas />} />
+          <Route path="/lojas/:id" element={<Loja />} />
+          <Route path="/doacoes" element={<Doacoes />} />
+          <Route path="/sobre" element={<Sobre />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/gerenciamento" element={<RotaProtegida><Gerenciamento /></RotaProtegida>} />
+          <Route path="/gerenciamento/roupas" element={<RotaProtegida><MinhasRoupas /></RotaProtegida>} />
+          <Route path="/gerenciamento/loja" element={<RotaProtegida><EditarLoja /></RotaProtegida>} />
+          <Route
+            path="*"
+            element={(
+              <Vazio>
+                <p>Página não encontrada.</p>
+                <Link to="/" className="botao">Ir para o início</Link>
+              </Vazio>
+            )}
+          />
+        </Routes>
+      </main>
+      <Rodape />
     </>
   )
 }
-
-export default App
