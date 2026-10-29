@@ -902,6 +902,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 15%; /* a foto tem folhagem em cima e um degradê branco embaixo: mostra as cabeças inteiras */
 }
 
 .sobre-texto {
