@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/IfesModas.Api/IfesModas.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/IfesModas.Tests/IfesModas.Tests.csproj" />
+  </Folder>
+</Solution>
