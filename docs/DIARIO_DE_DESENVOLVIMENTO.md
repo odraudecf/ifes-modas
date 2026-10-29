@@ -34,9 +34,109 @@ Este diário registra **o que foi feito, em que ordem e por quê** na recriaçã
 
 ## Etapa 1 — Ambiente e repositório
 
-**O que fizemos:**
-- Instalamos o **.NET 10 SDK** e o **Docker Desktop** com `winget` (Node 25 já estava instalado).
+- Instalamos o **.NET 10 SDK** (10.0.403) e o **Docker Desktop** com `winget`. Node 25 já estava instalado.
 - Criamos a pasta `ifes-modas/` como repositório Git, com `user.email` **local** apontando para a conta pessoal. O git global da máquina é de outra conta e não foi alterado.
-- Adicionamos `.gitignore` (bin/obj, node_modules, `.env`) e `.gitattributes` (Dockerfile e YAML sempre com quebra de linha LF; com CRLF, o shell do container quebra).
+- Criamos o repositório público `odraudecf/ifes-modas` com o GitHub CLI (`gh repo create`).
+- `.gitignore` (bin/obj, node_modules, `.env`) e `.gitattributes` (Dockerfile e YAML sempre com quebra de linha LF; com CRLF, o shell do container quebra).
 
-**Por quê:** segredos (string de conexão do Neon, chave do JWT) **nunca** vão para o Git. Eles ficam em variáveis de ambiente no Render e em `dotnet user-secrets` localmente.
+**Por quê:** segredos (string de conexão do Neon, chave do JWT) **nunca** vão para o Git. Eles ficam em variáveis de ambiente no Render.
+
+---
+
+## Etapa 2 — API em .NET 10 (camadas)
+
+```
+backend/src/IfesModas.Api/
+├─ Domain/       regras puras: Loja, Endereco, Uniforme, Cnpj, Ufs, RegrasUniforme
+├─ Data/         AppDbContext (EF Core), migrations, seed, conversão da URL do Neon
+├─ Dtos/         o "contrato" da API (o que entra e o que sai em JSON)
+├─ Services/     regras de negócio: AuthService, LojaService, UniformeService, TokenService
+├─ Controllers/  camada HTTP fina: recebe, chama o serviço, devolve o status
+├─ Errors/       ApiException → ProblemDetails (erros padronizados, em português)
+└─ Program.cs    monta tudo: banco, JWT, CORS, rate limit, Swagger, migrations
+```
+
+**Decisões e porquês:**
+
+| Decisão | Por quê |
+|---|---|
+| **DTOs separados das entidades** | A entidade `Loja` tem `SenhaHash`. Se ela fosse devolvida direto, o hash vazaria no JSON. Um teste garante que a palavra "senha" nunca aparece na resposta. |
+| **Serviços lançam `ApiException`** | O controller fica com uma linha só. Um handler central transforma a exceção em resposta HTTP (400/401/403/404/409). |
+| **EF Core + Npgsql** | Todas as consultas são parametrizadas, o que acaba com o SQL injection do sistema antigo. |
+| **Enums gravados como texto** | O banco mostra "Camisa", "Padrao", e não 0, 1, 2: fica legível sem tabela auxiliar. |
+| **snake_case no Postgres** (`EFCore.NamingConventions`) | É o padrão do Postgres; evita aspas em todo SQL manual. |
+| **`numeric(10,2)` no preço** | Corrige o `decimal(3,2)` antigo. |
+| **CNPJ alfanumérico** | A Receita Federal começou a emitir CNPJs com letras em julho de 2026. O validador aceita os dois formatos; testamos com o exemplo oficial `12.ABC.345/01DE-35`. |
+| **BCrypt** | Hash lento e com "sal" aleatório: duas lojas com a mesma senha têm hashes diferentes, e testar senhas em massa fica caro. |
+| **JWT** | Substitui o `?cnpj=` na URL. O token é **assinado** com uma chave secreta; se alguém alterar o conteúdo, a assinatura não confere e a API responde 401. |
+| **Autorização por dono** | Mesmo logada, uma loja não altera nem exclui uniforme de outra (403). |
+| **Login com resposta igual para "CNPJ não existe" e "senha errada"** | Não revela quais CNPJs estão cadastrados. O BCrypt roda nos dois casos, para o tempo de resposta também ser parecido. |
+| **Rate limit no login** (10/min por IP) | Dificulta tentar senhas em massa. Junto, `ForwardedHeaders`, porque no Render todos chegariam com o IP do proxy. |
+| **Links de Instagram/Facebook só http/https** | Impede salvar `javascript:alert(1)` como link (XSS). |
+| **Swagger também em produção** | O professor pode testar a API publicada direto no navegador, sem token nas rotas públicas. |
+| **Migrations e seed na subida** | O Render não tem passo de "rodar migration"; a API se atualiza sozinha ao subir. O seed só roda com o banco vazio. |
+
+**Endpoints:** veja a tabela no README.
+
+---
+
+## Etapa 3 — Testes (xUnit)
+
+São **63 testes**, em duas camadas:
+
+- **Unitários** (`tests/Unit`): CNPJ (válidos, inválidos, alfanumérico, `' OR '1'='1`), regras de tamanho/modelo/preço, conversão da URL do Neon, geração e validação do JWT, BCrypt.
+- **Integração** (`tests/Integration`): o `WebApplicationFactory` sobe **a API inteira** (Program.cs real, com JWT, validação e controllers) trocando só o Postgres por um banco em memória. Testam o fluxo cadastro → login → criar/alterar/excluir uniforme → aparece na página pública, além de 401 sem token, 401 com token forjado, 403 em uniforme de outra loja, 409 com CNPJ repetido, 429 no rate limit, CORS e mensagens em português.
+
+**Teste de mutação (a prova de que os testes servem):** desativamos de propósito a checagem de dono (`if (false && uniforme.LojaId != lojaId)`) e rodamos os testes. O teste `Loja_nao_altera_nem_exclui_uniforme_de_outra_loja` **falhou** (esperado 403, veio 200). Depois restauramos o código. Bom para a demo ao vivo.
+
+---
+
+## Etapa 4 — Docker e CI/CD
+
+- **Dockerfile multi-stage:** o estágio `build` usa o SDK (~800 MB) para compilar; o estágio final leva só o runtime ASP.NET (~220 MB), roda como usuário sem privilégios (`$APP_UID`) e escuta na porta 8080. No Render, a variável `PORT` tem prioridade.
+- **docker-compose.yml:** Postgres 17 + API para rodar tudo localmente com um comando.
+- **GitHub Actions** (`.github/workflows/ci-cd.yml`), em todo push e PR:
+  1. API: restore → build → **testes**
+  2. Front: `npm ci` → lint → build
+  3. Docker: `docker build` da imagem
+  4. **Deploy** (só na `main` e só se os 3 passarem): chama os *Deploy Hooks* do Render.
+- **Render Blueprint** (`render.yaml`): cria a API (Docker) e o front (site estático) com o auto-deploy do Render **desligado**. Quem manda publicar é o Actions, depois dos testes. Código que quebra teste **nunca** chega à produção.
+- **Região:** Render e Neon ficam juntos em US East (Virgínia). O Render não tem região no Brasil. Com o banco em São Paulo e a API nos EUA, cada consulta cruzaria o continente.
+
+O primeiro push já passou nos 4 jobs, inclusive no build da imagem Docker.
+
+---
+
+## Etapa 5 — Front-end (React + Vite)
+
+```
+frontend/src/
+├─ api/client.js       fetch + token + tradução de erros (ProblemDetails)
+├─ auth/               AuthProvider (token no localStorage), useAuth, RotaProtegida
+├─ components/         Topo, Rodape, Hero, Campo, CamposLoja, Estados (carregando/erro/vazio)
+├─ lib/                formatação (preço, telefone, CNPJ), regras dos uniformes, useApi
+├─ pages/              Inicio, Lojas, Loja, Doacoes, Sobre, Login, Cadastro,
+│                      Gerenciamento, MinhasRoupas, EditarLoja
+└─ styles/             base.css (tokens: cores e fontes) + components.css
+```
+
+**Decisões:**
+- **Mesma identidade do TCC:** verde `#00420c`/`#2F9E42`, Poppins, foto do campus com cartão branco. Seguimos a skill `frontend-design` (a mesma convenção do projeto BroTime): o briefing manda, então mantivemos a identidade e investimos o "elemento marcante" na **grade de quadrados da logo do Ifes**, que vira marcador das listas e o indicador de carregamento.
+- **Página da loja melhorada:** o original repetia a mesma foto em cada tamanho. Agora há uma foto por grupo (ex.: camisa padrão masculina) com a **grade de tamanhos e preços**, que facilita comparar.
+- **Regra do `script.js` antigo mantida:** calça → tamanho numérico e sem modelo; camisa → modelo obrigatório. O back-end valida de novo, porque o front pode ser burlado.
+- **"Alterar dados da loja"**, que era só um botão sem função no PHP, agora funciona.
+- **Aviso de "servidor acordando":** no plano gratuito, a API do Render dorme depois de 15 min sem uso e leva até ~1 min para voltar. A tela avisa isso em vez de parecer travada.
+- **Imagens em WebP:** de ~10 MB para ~420 KB no total.
+- **Acessibilidade:** rótulos visíveis nos campos (o original só tinha placeholder), foco visível, link "pular para o conteúdo" e `prefers-reduced-motion`.
+
+---
+
+## Etapa 6 — Teste ponta a ponta local
+
+Sem Docker (o WSL ainda não estava instalado), subimos um Postgres 17 temporário com o pacote `embedded-postgres`, fora do repositório.
+
+- A API aplicou a migration no Postgres real e o seed criou 5 lojas.
+- Testamos com `curl`: login, criar uniforme, **403** em uniforme de outra loja, **401** sem token e acentos em UTF-8 ("Caparaó").
+- No navegador (Chrome): home, página da loja, login com máscara de CNPJ, CRUD de roupas (calça 44 adicionada) e console sem erros.
+
+**Falso alarme investigado:** na primeira subida apareceu `fail: Failed executing DbCommand ... FROM "__EFMigrationsHistory"`. É o EF tentando ler o histórico antes de criar a tabela, num banco vazio; só acontece no primeiro boot. Não exigiu correção.
