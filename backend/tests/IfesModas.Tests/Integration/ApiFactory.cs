@@ -21,6 +21,7 @@ public class ApiFactory : WebApplicationFactory<Program>
 {
     private readonly string _banco = $"ifes-testes-{Guid.NewGuid()}";
     public int LimiteAuthPorMinuto { get; init; } = 1000;
+    public string CorsOrigins { get; init; } = "http://localhost:5173";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -29,6 +30,7 @@ public class ApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("Jwt:Key", "chave-de-teste-com-mais-de-32-caracteres!!");
         builder.UseSetting("Seed:Enabled", "false");
         builder.UseSetting("RateLimit:AuthPorMinuto", LimiteAuthPorMinuto.ToString());
+        builder.UseSetting("Cors:Origins", CorsOrigins);
 
         builder.ConfigureServices(services =>
         {

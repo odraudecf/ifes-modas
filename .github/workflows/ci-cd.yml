@@ -1,0 +1,81 @@
+# CI/CD do Ifes Modas
+# Em todo push/PR: compila e testa a API, compila o front e valida o Dockerfile.
+# Só em push na main E com tudo verde: dispara o deploy da API e do front no Render (Deploy Hooks).
+# Assim, código que quebra um teste nunca chega à produção.
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: API — build e testes (xUnit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
+      - run: dotnet test --no-build -c Release --logger "trx;LogFileName=resultado.trx" --logger "console;verbosity=normal"
+      - name: Publica o relatório dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultado-testes
+          path: backend/tests/**/TestResults/*.trx
+
+  frontend:
+    name: Front — lint e build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  docker:
+    name: Docker — build da imagem da API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t ifes-modas-api:ci backend
+
+  deploy:
+    name: Deploy no Render
+    needs: [backend, frontend, docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      HOOK_API: ${{ secrets.RENDER_DEPLOY_HOOK_API }}
+      HOOK_FRONT: ${{ secrets.RENDER_DEPLOY_HOOK_FRONT }}
+    steps:
+      - name: Dispara deploy da API
+        if: env.HOOK_API != ''
+        run: curl -fsS -X POST "$HOOK_API" > /dev/null && echo "Deploy da API solicitado."
+      - name: Dispara deploy do front
+        if: env.HOOK_FRONT != ''
+        run: curl -fsS -X POST "$HOOK_FRONT" > /dev/null && echo "Deploy do front solicitado."
+      - name: Aviso se os secrets não existem
+        if: env.HOOK_API == '' || env.HOOK_FRONT == ''
+        run: echo "::warning::Configure RENDER_DEPLOY_HOOK_API e RENDER_DEPLOY_HOOK_FRONT em Settings → Secrets → Actions."

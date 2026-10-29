@@ -59,8 +59,11 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
 builder.Services.AddAuthorization();
 
 // ---------- CORS: só o front publicado (e o Vite local) pode chamar a API pelo navegador ----------
+// O Render informa só o host do front ("ifes-modas.onrender.com"); completamos com https://.
 var origens = (builder.Configuration["Cors:Origins"] ?? "http://localhost:5173")
-    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .Select(o => o.Contains("://") ? o.TrimEnd('/') : $"https://{o.TrimEnd('/')}")
+    .ToArray();
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(origens).AllowAnyHeader().AllowAnyMethod()));
 
 // ---------- Rate limit nas rotas de login/cadastro ----------

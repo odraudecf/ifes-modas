@@ -1,0 +1,42 @@
+# Blueprint do Render: cria a API (Docker) e o front (site estático) de uma vez.
+# No Render: New → Blueprint → escolha este repositório.
+# O deploy automático do Render fica DESLIGADO: quem dispara o deploy é o GitHub Actions,
+# depois que os testes passam (ver .github/workflows/ci-cd.yml).
+services:
+  - type: web
+    name: ifes-modas-api
+    runtime: docker
+    plan: free
+    region: virginia            # mesma região do banco no Neon (AWS us-east-1)
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: ConnectionStrings__Default
+        sync: false             # o Render pede o valor na criação (string de conexão do Neon)
+      - key: Jwt__Key
+        generateValue: true     # o Render gera uma chave aleatória de 256 bits
+      - key: Cors__Origins
+        fromService:
+          type: web
+          name: ifes-modas
+          property: host
+
+  - type: web
+    name: ifes-modas
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeployTrigger: "off"
+    routes:
+      - type: rewrite           # SPA: qualquer rota (/lojas/3, /login...) abre o index.html
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: ifes-modas-api
+          property: host
