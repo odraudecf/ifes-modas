@@ -5,9 +5,9 @@ namespace IfesModas.Api.Dtos;
 
 /// <summary>Criação/alteração de um item do catálogo (RF05, RF06).</summary>
 public record UniformeRequest(
-    [Required] TipoUniforme? Tipo,
+    [Required(ErrorMessage = "Informe o tipo (Camisa, Bermuda ou Calca).")] TipoUniforme? Tipo,
     ModeloCamisa? Modelo,
-    [Required] Genero? Genero,
+    [Required(ErrorMessage = "Informe o gênero.")] Genero? Genero,
     [Required(ErrorMessage = "Informe o tamanho.")] string Tamanho,
     [Required(ErrorMessage = "Informe o preço.")] decimal? Preco);
 

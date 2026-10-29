@@ -53,8 +53,24 @@ public class LojasTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.NotFound, (await factory.CreateClient().GetAsync("/api/lojas/999999")).StatusCode);
 
     [Fact]
-    public async Task Me_sem_token_devolve_401() =>
-        Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().GetAsync("/api/lojas/me")).StatusCode);
+    public async Task Me_sem_token_devolve_401_com_mensagem_em_portugues()
+    {
+        var resp = await factory.CreateClient().GetAsync("/api/lojas/me");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
+        Assert.Contains("Faça login", await resp.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Validacao_automatica_responde_em_portugues()
+    {
+        var resp = await factory.CreateClient().PostAsJsonAsync("/api/auth/login", new { cnpj = "", senha = "" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        var corpo = await resp.Content.ReadAsStringAsync();
+        Assert.Contains("Há campos inválidos.", corpo);
+        Assert.Contains("Informe o CNPJ.", corpo);
+    }
 
     [Fact]
     public async Task Detalhe_nao_expoe_hash_da_senha()

@@ -85,7 +85,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(o =>
 });
 
 // ---------- Erros no formato ProblemDetails ----------
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetails(o => o.CustomizeProblemDetails = ctx =>
+    ctx.ProblemDetails.Title = MensagensPadrao.Traduzir(ctx.ProblemDetails.Status, ctx.ProblemDetails.Title));
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
 builder.Services.AddControllers()
