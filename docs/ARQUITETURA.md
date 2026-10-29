@@ -59,6 +59,6 @@ O front **lê** o payload do token só para mostrar o nome da loja e saber a val
 |---|---|---|
 | `ConnectionStrings__Default` | `postgresql://user:senha@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require` | Render (secreta). A API converte a URL do Neon para o formato do Npgsql. |
 | `Jwt__Key` | (gerada pelo Render, 256 bits) | Render |
-| `Cors__Origins` | `ifes-modas.onrender.com` | Render (vem do Blueprint) |
-| `VITE_API_URL` | `ifes-modas-api.onrender.com` | Render, no front, em tempo de build |
+| `Cors__Origins` | `https://ifes-modas.onrender.com` | Render (fixo no `render.yaml`) |
+| `VITE_API_URL` | `https://ifes-modas-api.onrender.com` | Render, no front, lida em tempo de **build** |
 | `PORT` | 10000 | Render define sozinho |

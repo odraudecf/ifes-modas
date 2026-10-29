@@ -2,7 +2,7 @@
 
 const urlConfigurada = import.meta.env.VITE_API_URL || 'http://localhost:5112'
 
-// O Render informa só o host ("ifes-modas-api.onrender.com"); completamos com https://.
+// Aceita o endereço com ou sem esquema ("ifes-modas-api.onrender.com" vira "https://...").
 export const API_URL = (urlConfigurada.includes('://') ? urlConfigurada : `https://${urlConfigurada}`).replace(/\/$/, '')
 
 const CHAVE_TOKEN = 'ifesmodas.token'

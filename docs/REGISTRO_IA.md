@@ -44,6 +44,7 @@ O trabalho libera e recomenda IA. A regra é: **o código é nosso. Nós encomen
 | 6 | O componente `Campo` aceitava `children`, e aí o `<label>` apontaria para um id inexistente | Revisão do próprio código antes do build | Removemos a opção (não era usada) |
 | 7 | O script do Postgres temporário montou o caminho a partir da URL do arquivo **sem decodificar** ("Eduardo%20Castro") | O `initdb` falhou com "Permission denied" | `fileURLToPath()` + forçar UTF-8 (o padrão do Windows seria WIN1252) |
 | 8 | No PowerShell 5.1, `git config ... ""` perdeu o argumento vazio | Erro "wrong number of arguments" | O mesmo comando no Bash |
+| 9 | No `render.yaml`, a IA usou `fromService → property: host` achando que daria o endereço público. Na verdade é o **nome interno** do serviço (`ifes-modas-api`): o front chamava `https://ifes-modas-api` e o CORS liberava `https://ifes-modas` | **Verificação em produção** depois do primeiro deploy: o preflight CORS voltou sem `Access-Control-Allow-Origin` e o JS publicado tinha a URL errada. Todos os testes locais passavam, porque o erro estava só na configuração da nuvem | URLs públicas fixas no `render.yaml` + novo deploy. Lição: teste de produção é obrigatório, não só o CI |
 
 ### Os testes provam alguma coisa? (teste de mutação)
 

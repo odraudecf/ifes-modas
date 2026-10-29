@@ -139,4 +139,24 @@ Sem Docker (o WSL ainda não estava instalado), subimos um Postgres 17 temporár
 - Testamos com `curl`: login, criar uniforme, **403** em uniforme de outra loja, **401** sem token e acentos em UTF-8 ("Caparaó").
 - No navegador (Chrome): home, página da loja, login com máscara de CNPJ, CRUD de roupas (calça 44 adicionada) e console sem erros.
 
-**Falso alarme investigado:** na primeira subida apareceu `fail: Failed executing DbCommand ... FROM "__EFMigrationsHistory"`. É o EF tentando ler o histórico antes de criar a tabela, num banco vazio; só acontece no primeiro boot. Não exigiu correção.
+---
+
+## Etapa 7 — Primeiro deploy (Neon + Render)
+
+O grupo criou o projeto no Neon e aplicou o Blueprint no Render. Verificação feita pela IA com `curl`:
+
+| Verificação | Resultado |
+|---|---|
+| `GET /health` | 200 `Healthy` |
+| `GET /api/lojas` sem token | 200: lojas do seed vindas do **Neon** (a migration rodou na subida) |
+| Swagger em produção | 200 |
+| Front e rota `/lojas` (rewrite da SPA) | 200 |
+| Login demo → JWT → `GET /api/lojas/me` | 200 com token, 401 sem token |
+| **CORS** a partir do site | ❌ sem `Access-Control-Allow-Origin` |
+| **URL da API dentro do JS do front** | ❌ `https://ifes-modas-api` (nome interno) |
+
+**Causa:** no Blueprint, `fromService.property: host` devolve o hostname **interno** da rede privada do Render, não o `.onrender.com`. **Correção:** URLs públicas fixas no `render.yaml`. O `VITE_API_URL` é lido no build, então o front precisa de um novo deploy.
+
+---
+
+**Falso alarme investigado (Etapa 6):** na primeira subida apareceu `fail: Failed executing DbCommand ... FROM "__EFMigrationsHistory"`. É o EF tentando ler o histórico antes de criar a tabela, num banco vazio; só acontece no primeiro boot. Não exigiu correção.

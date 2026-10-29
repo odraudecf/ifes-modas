@@ -17,11 +17,10 @@ services:
         sync: false             # o Render pede o valor na criação (string de conexão do Neon)
       - key: Jwt__Key
         generateValue: true     # o Render gera uma chave aleatória de 256 bits
+      # URL pública do front. (Não usar fromService/property: host — ele devolve o nome INTERNO
+      # do serviço na rede privada do Render, "ifes-modas", e não o endereço .onrender.com.)
       - key: Cors__Origins
-        fromService:
-          type: web
-          name: ifes-modas
-          property: host
+        value: https://ifes-modas.onrender.com
 
   - type: web
     name: ifes-modas
@@ -35,8 +34,6 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      # Lida pelo Vite no BUILD (fica embutida no JS): mudar exige novo deploy do front.
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: ifes-modas-api
-          property: host
+        value: https://ifes-modas-api.onrender.com
