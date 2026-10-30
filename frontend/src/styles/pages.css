@@ -1041,6 +1041,131 @@ main:has(> .faixa-lojista:last-child) {
   color: var(--papel);
 }
 
+.cnpj-bloco {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.campo-status {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  color: var(--verde-texto);
+}
+
+.campo-status:empty {
+  padding: 0;
+}
+
+.girando {
+  animation: girar 0.9s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+.consulta-cnpj {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+}
+
+.consulta-cnpj svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.consulta-cnpj.achou {
+  padding: 12px 14px;
+  border: 1px solid #bcdcc2;
+  border-radius: var(--raio);
+  background: var(--folha);
+  color: #145522;
+}
+
+.consulta-cnpj.achou div {
+  display: grid;
+  gap: 2px;
+}
+
+.consulta-cnpj.achou strong {
+  color: var(--tinta);
+}
+
+.consulta-cnpj.inativa,
+.consulta-cnpj.aviso-leve {
+  color: #8a5a00;
+}
+
+.consulta-cnpj.inativa {
+  border-color: #ecd7a6;
+  background: #fff8e6;
+}
+
+.opcao-teste {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1.5px dashed var(--linha-forte);
+  border-radius: var(--raio);
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+
+.opcao-teste input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--mata);
+}
+
+.opcao-teste span {
+  display: grid;
+  gap: 2px;
+}
+
+.opcao-teste strong {
+  color: var(--tinta);
+}
+
+.login-resumo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--raio);
+  background: var(--nevoa);
+}
+
+.login-resumo span {
+  color: var(--tinta-3);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.login-resumo strong {
+  display: block;
+  color: var(--mata);
+  font-size: var(--t-lg);
+  font-weight: 800;
+  font-stretch: 80%;
+  font-variant-numeric: tabular-nums;
+}
+
+.login-resumo p {
+  margin-top: 4px;
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+}
+
 .etapa-titulo {
   font-size: var(--t-md);
 }

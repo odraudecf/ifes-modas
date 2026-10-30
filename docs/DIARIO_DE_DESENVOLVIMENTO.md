@@ -223,3 +223,22 @@ Até aqui, todo push ia direto para a `main`, e a `main` publica em produção. 
 | Token do teste usado na API de produção | 401 (chaves JWT diferentes) |
 | Produção | continua com o layout antigo até o merge na `main` |
 
+---
+
+## Etapa 10 — Cadastro pelo CNPJ e navbar verde
+
+**Nova regra de negócio:** o cadastro começa pelo CNPJ. Ao digitar um CNPJ válido, a API busca os dados públicos na Receita e o formulário já chega com nome, telefone e endereço preenchidos. A loja só confere e ajusta.
+
+- **Consulta (`GET /api/cnpj/{cnpj}`, `ConsultaCnpjService.cs`):** tenta três APIs gratuitas em sequência, **BrasilAPI → CNPJá → ReceitaWS**. Se uma estiver fora do ar ou no limite de uso, passa para a próxima. O front chama a nossa API, e não as externas direto, para não depender de CORS de terceiros e poder trocar de fornecedor sem mexer no site.
+  - Cada fornecedor responde num formato diferente; o serviço traduz os três para o mesmo formato do formulário.
+  - A Receita guarda tudo em maiúsculas: "MALHARIA EXEMPLO DO CAPARAO LTDA" vira "Malharia Exemplo do Caparao LTDA".
+  - Respostas: 404 se ninguém conhece o CNPJ, 503 se as três APIs falharem. Nos dois casos, a loja preenche à mão.
+  - Se a situação na Receita não for "Ativa", o formulário avisa.
+- **Regra por ambiente (`Cadastro:ExigirCnpj`):** em produção, o CNPJ é **obrigatório** (padrão `true`). No ambiente de teste (`render.dev.yaml`) fica `false`: aparece a opção "Cadastrar sem CNPJ", e a API gera um CNPJ fictício válido, que vira o login da loja (aparece na mensagem de boas-vindas e no painel). Quem garante a regra é a API; o front só lê `GET /api/auth/regras` para mostrar ou esconder a opção.
+- **Etapas do cadastro:** o CNPJ saiu da etapa "Acesso" e foi para a etapa "Loja", como primeiro campo. A etapa "Acesso" mostra o CNPJ de novo ("Seu login") e pede só a criação da senha.
+- **Navbar** verde-escura (a mesma cor do rodapé), também no menu do celular.
+
+**Testes:** 17 novos, total de **80**. As APIs de CNPJ são **simuladas** nos testes, que nunca acessam a internet: CNPJ encontrado, primeira API fora do ar (usa a segunda), ninguém conhece (404), todas fora (503), CNPJ inválido (400 sem consultar ninguém), cadastro sem CNPJ em produção (400) e no teste (gera CNPJ e o login funciona).
+**Teste de mutação:** desligando de propósito a exigência de CNPJ, o teste de produção falhou, como deveria.
+**No navegador:** busca real com o CNPJ público do Banco do Brasil (preencheu nome, telefone e endereço), cadastro completo sem CNPJ no modo teste e CNPJ barrado no modo produção.
+

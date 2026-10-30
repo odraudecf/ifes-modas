@@ -20,6 +20,8 @@ services:
         generateValue: true     # chave própria: token de teste não vale em produção
       - key: Cors__Origins
         value: https://ifes-modas-dev.onrender.com
+      - key: Cadastro__ExigirCnpj
+        value: "false"          # só no teste: dá para cadastrar loja sem CNPJ (a API gera um para o login)
 
   - type: web
     name: ifes-modas-dev

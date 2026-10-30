@@ -405,6 +405,18 @@ a.sr-only:focus {
   border-color: var(--vermelho);
 }
 
+/* Com erro, o foco continua vermelho (o verde do foco escondia o aviso). */
+.campo.com-erro input:focus,
+.campo.com-erro select:focus,
+.campo.com-erro .campo-caixa:focus-within {
+  border-color: var(--vermelho);
+  box-shadow: 0 0 0 3px rgb(200 32 47 / 0.18);
+}
+
+.campo.com-erro .campo-caixa input:focus {
+  box-shadow: none;
+}
+
 .campo-erro {
   color: var(--vermelho);
   font-size: var(--t-sm);

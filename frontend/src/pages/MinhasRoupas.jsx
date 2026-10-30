@@ -30,7 +30,14 @@ function Catalogo({ inicial }) {
   // (o lojista costuma cadastrar a mesma peça no outro gênero logo em seguida).
   const [ultimoNovo, setUltimoNovo] = useState({ pecaId: 'camisa-padrao', genero: 'Masculino', preco: '' })
   const [mensagem, setMensagem] = useState(
-    location.state?.boasVindas ? { tipo: 'sucesso', texto: 'Loja cadastrada. Agora adicione os uniformes que você vende.' } : null,
+    location.state?.boasVindas
+      ? {
+          tipo: 'sucesso',
+          texto: location.state.cnpjGerado
+            ? `Loja cadastrada. Anote seu login: CNPJ ${location.state.cnpjGerado} (gerado para teste). Agora adicione os uniformes que você vende.`
+            : 'Loja cadastrada. Agora adicione os uniformes que você vende.',
+        }
+      : null,
   )
 
   // O botão "Excluir" pede confirmação no próprio botão; a confirmação expira em 4 s.

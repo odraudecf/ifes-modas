@@ -3,9 +3,8 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  background: rgb(255 255 255 / 0.94);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--linha);
+  background: var(--mata);
+  color: var(--papel);
 }
 
 .topo-barra {
@@ -26,6 +25,10 @@
   font-stretch: 80%;
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+
+.topo .marca {
+  color: var(--papel);
 }
 
 .marca img {
@@ -54,18 +57,18 @@
   display: block;
   padding: 8px 12px;
   border-radius: var(--raio);
-  color: var(--tinta-2);
+  color: #cfe0d2;
   font-weight: 500;
   text-decoration: none;
 }
 
 .topo-nav ul a:hover {
-  background: var(--nevoa);
-  color: var(--tinta);
+  background: rgb(255 255 255 / 0.08);
+  color: var(--papel);
 }
 
 .topo-nav ul a.active {
-  color: var(--tinta);
+  color: var(--papel);
   font-weight: 600;
 }
 
@@ -82,6 +85,17 @@
   background: var(--vermelho);
 }
 
+.topo .topo-loja {
+  border-color: rgb(255 255 255 / 0.4);
+  background: transparent;
+  color: var(--papel);
+}
+
+.topo .topo-loja:hover {
+  border-color: var(--papel);
+  background: rgb(255 255 255 / 0.08);
+}
+
 .topo-loja span {
   max-width: 220px;
   overflow: hidden;
@@ -95,8 +109,12 @@
   border: 0;
   border-radius: var(--raio);
   background: none;
-  color: var(--tinta);
+  color: var(--papel);
   cursor: pointer;
+}
+
+.topo :focus-visible {
+  outline-color: #8fd19b;
 }
 
 @media (max-width: 760px) {
@@ -114,9 +132,9 @@
     align-items: stretch;
     gap: 12px;
     padding: 8px 16px 20px;
-    background: var(--papel);
-    border-bottom: 1px solid var(--linha);
-    box-shadow: 0 16px 24px rgb(15 58 29 / 0.08);
+    background: var(--mata);
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+    box-shadow: 0 16px 24px rgb(15 58 29 / 0.2);
   }
 
   .topo-nav.aberto {

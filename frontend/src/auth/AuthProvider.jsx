@@ -48,7 +48,12 @@ export function AuthProvider({ children }) {
     loja,
     logada: loja !== null,
     login: async (cnpj, senha) => entrar((await api('/api/auth/login', { method: 'POST', body: { cnpj, senha } })).token),
-    cadastrar: async (dados) => entrar((await api('/api/auth/cadastro', { method: 'POST', body: dados })).token),
+    // Devolve a loja criada: no ambiente de teste o CNPJ pode ter sido gerado pela API.
+    cadastrar: async (dados) => {
+      const resposta = await api('/api/auth/cadastro', { method: 'POST', body: dados })
+      entrar(resposta.token)
+      return resposta.loja
+    },
     sair,
     renomear,
   }), [loja, entrar, sair, renomear])
