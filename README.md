@@ -11,6 +11,7 @@ Vitrine das lojas que vendem os **uniformes do Ifes Campus de Alegre**. O aluno 
 | **Site** | https://ifes-modas.onrender.com |
 | **API (Swagger)** | https://ifes-modas-api.onrender.com/swagger |
 | **Health check** | https://ifes-modas-api.onrender.com/health |
+| **Ambiente de teste** (branch `Dev`) | https://ifes-modas-dev.onrender.com · API: https://ifes-modas-api-dev.onrender.com/swagger |
 
 > **Primeira visita lenta?** No plano gratuito do Render a API "dorme" depois de 15 minutos sem uso e leva até ~1 minuto para acordar. O site avisa enquanto isso.
 
@@ -27,7 +28,7 @@ Vitrine das lojas que vendem os **uniformes do Ifes Campus de Alegre**. O aluno 
 | Segurança | **JWT** (HMAC-SHA256) · **BCrypt** para senhas · rate limit no login · CORS restrito |
 | Documentação da API | **Swashbuckle** 10 (Swagger UI com botão *Authorize*) |
 | Testes | **xUnit** · `WebApplicationFactory` (testes de integração com a API real) |
-| Front | **React 19** + **Vite 8** · React Router |
+| Front | **React 19** + **Vite 8** · React Router · ícones Lucide |
 | Entrega | **Docker** (multi-stage) · **GitHub Actions** · **Render** (API em Docker + site estático) |
 
 ## O que mudou em relação ao sistema antigo
@@ -48,7 +49,7 @@ Vitrine das lojas que vendem os **uniformes do Ifes Campus de Alegre**. O aluno 
 
 | RF | Descrição | Onde |
 |---|---|---|
-| RF01 | Cadastro da loja | `POST /api/auth/cadastro` · tela Cadastro |
+| RF01 | Cadastro da loja | `POST /api/auth/cadastro` · tela Cadastro (o CNPJ preenche o resto pela Receita: `GET /api/cnpj/{cnpj}`) |
 | RF02 | Login da loja | `POST /api/auth/login` · tela Login |
 | RF03 | Listar lojas por estado e município | `GET /api/lojas` · tela Lojas |
 | RF04 | Encaminhar para doações | tela Doações |
@@ -66,6 +67,8 @@ As rotas de consulta são **públicas** (funcionam sem token). As de gerenciamen
 |---|---|---|---|
 | POST | `/api/auth/cadastro` | — | Cadastra a loja e devolve o token |
 | POST | `/api/auth/login` | — | Login com CNPJ e senha |
+| GET | `/api/auth/regras` | — | Regras do cadastro neste ambiente (`exigirCnpj`) |
+| GET | `/api/cnpj/{cnpj}` | — | Dados do CNPJ na Receita (BrasilAPI → CNPJá → ReceitaWS) para preencher o cadastro |
 | GET | `/api/lojas?uf=ES` | — | Lojas agrupadas por estado e cidade (filtro opcional) |
 | GET | `/api/lojas/{id}` | — | Dados, endereço, contatos e catálogo da loja |
 | GET | `/api/lojas/me` | ✔ | Dados da loja logada |
@@ -111,21 +114,34 @@ As migrations e os dados de demonstração são aplicados sozinhos quando a API 
 **Testes**
 
 ```bash
-cd backend && dotnet test        # 63 testes (unitários + integração)
+cd backend && dotnet test        # 80 testes (unitários + integração)
 cd frontend && npm run lint && npm run build
 ```
 
-## CI/CD: cada push na `main` publica sozinho
+## Branches e ambientes
+
+| Branch | Para quê | Publica em | Banco (Neon) | Blueprint |
+|---|---|---|---|---|
+| `main` | Versão oficial, a que o professor avalia | **Produção**: ifes-modas.onrender.com | branch `main` | `render.yaml` |
+| `Dev` | Mudanças em andamento, para o grupo testar antes | **Teste**: ifes-modas-dev.onrender.com | branch `dev` (cópia isolada) | `render.dev.yaml` |
+
+Fluxo: trabalhar na `Dev` → push → conferir no ambiente de teste → **Pull Request da `Dev` para a `main`** → o merge publica em produção.
+O teste usa outro banco e outra chave JWT: cadastrar, editar ou excluir no teste não mexe em nada da produção.
+Regra que muda por ambiente: em produção o **CNPJ é obrigatório** no cadastro; no teste (`Cadastro__ExigirCnpj=false`) dá para cadastrar sem ele, e a API gera um CNPJ fictício que vira o login da loja.
+
+## CI/CD: cada push na `main` (ou na `Dev`) publica sozinho
 
 ```
 push na main ─► GitHub Actions
-                ├─ API: build + 63 testes xUnit
+                ├─ API: build + 80 testes xUnit
                 ├─ Front: lint + build
                 └─ Docker: build da imagem
                         │ todos verdes?
                         ▼
                 deploy: Deploy Hooks do Render ─► API (Docker) e Front (estático) no ar
 ```
+
+Na `Dev` é igual, mas o deploy usa os hooks do ambiente de teste (`RENDER_DEPLOY_HOOK_API_DEV` e `RENDER_DEPLOY_HOOK_FRONT_DEV`). Cada branch só enxerga os hooks do próprio ambiente.
 
 O auto-deploy do próprio Render fica **desligado** (`render.yaml`). Quem manda publicar é o Actions, depois dos testes. Código que quebra teste não chega à produção.
 
@@ -135,6 +151,13 @@ O auto-deploy do próprio Render fica **desligado** (`render.yaml`). Quem manda 
 2. **Render:** New → **Blueprint** → este repositório. Preencher `ConnectionStrings__Default` com a string do Neon (a `Jwt__Key` o Render gera sozinho).
 3. Em cada serviço do Render: Settings → **Deploy Hook** → copiar a URL.
 4. **GitHub** → Settings → Secrets and variables → Actions: criar `RENDER_DEPLOY_HOOK_API` e `RENDER_DEPLOY_HOOK_FRONT`.
+
+### Configuração do ambiente de teste (feita uma vez)
+
+1. **Neon:** no projeto, Branches → **Create branch** `dev` a partir da `main` e copiar a connection string dessa branch.
+2. **Render:** New → **Blueprint** → este repositório, branch **`Dev`**, Blueprint Path **`render.dev.yaml`**. Preencher `ConnectionStrings__Default` com a string da branch `dev`.
+3. Em cada serviço de teste (`ifes-modas-api-dev` e `ifes-modas-dev`): Settings → **Deploy Hook** → copiar a URL.
+4. **GitHub** → Secrets: criar `RENDER_DEPLOY_HOOK_API_DEV` e `RENDER_DEPLOY_HOOK_FRONT_DEV`.
 
 ## Estrutura
 
@@ -153,7 +176,7 @@ docker-compose.yml        ambiente local
 
 ## Uso de IA
 
-O desenvolvimento usou o **Claude Code** (Anthropic) para análise do sistema antigo, planejamento, geração de código, testes, infraestrutura e documentação. Todo o código foi revisado, testado (63 testes, mais um teste de mutação) e verificado manualmente com Postgres real e no navegador.
+O desenvolvimento usou o **Claude Code** (Anthropic) para análise do sistema antigo, planejamento, geração de código, testes, infraestrutura e documentação. Todo o código foi revisado, testado (80 testes, mais testes de mutação) e verificado manualmente com Postgres real e no navegador.
 
 O registro completo, com a linha do tempo, os **erros que a IA cometeu e como os pegamos**, está em [`docs/REGISTRO_IA.md`](docs/REGISTRO_IA.md). As decisões técnicas, etapa por etapa, estão em [`docs/DIARIO_DE_DESENVOLVIMENTO.md`](docs/DIARIO_DE_DESENVOLVIMENTO.md).
 

@@ -3,11 +3,12 @@ using IfesModas.Api.Domain;
 using IfesModas.Api.Dtos;
 using IfesModas.Api.Errors;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace IfesModas.Api.Services;
 
 /// <summary>Cadastro (RF01) e login (RF02) das lojas.</summary>
-public class AuthService(AppDbContext db, TokenService tokens)
+public class AuthService(AppDbContext db, TokenService tokens, IOptions<CadastroOptions> regras)
 {
     // Hash de uma senha qualquer, usado quando o CNPJ não existe: o login demora o mesmo tempo
     // nos dois casos, então não dá para descobrir quais CNPJs estão cadastrados medindo o tempo de resposta.
@@ -15,12 +16,15 @@ public class AuthService(AppDbContext db, TokenService tokens)
 
     public async Task<AuthResponse> CadastrarAsync(CadastroRequest req, CancellationToken ct)
     {
+        var semCnpj = string.IsNullOrWhiteSpace(req.Cnpj);
         var erros = ValidacaoLoja.Validar(req.Telefone, req.Instagram, req.Facebook, req.Endereco);
-        if (!Cnpj.EhValido(req.Cnpj)) erros["cnpj"] = ["CNPJ inválido."];
+        if (semCnpj && regras.Value.ExigirCnpj) erros["cnpj"] = ["Informe o CNPJ."];
+        else if (!semCnpj && !Cnpj.EhValido(req.Cnpj)) erros["cnpj"] = ["CNPJ inválido."];
         if (req.Senha != req.ConfirmarSenha) erros["confirmarSenha"] = ["As senhas não conferem."];
         if (erros.Count > 0) throw ApiException.Validacao(erros);
 
-        var cnpj = Cnpj.Normalizar(req.Cnpj);
+        // Sem CNPJ só chega aqui no ambiente de teste: geramos um, que vira o login da loja.
+        var cnpj = semCnpj ? await GerarCnpjDeTesteAsync(ct) : Cnpj.Normalizar(req.Cnpj);
         if (await db.Lojas.AnyAsync(l => l.Cnpj == cnpj, ct))
             throw ApiException.Conflito("Já existe uma loja cadastrada com este CNPJ.");
 
@@ -61,6 +65,18 @@ public class AuthService(AppDbContext db, TokenService tokens)
             throw ApiException.NaoAutorizado("CNPJ ou senha inválidos.");
 
         return CriarResposta(loja);
+    }
+
+    /// <summary>Regras do cadastro neste ambiente (o formulário mostra ou esconde a opção "sem CNPJ").</summary>
+    public RegrasCadastroDto Regras() => new(regras.Value.ExigirCnpj);
+
+    private async Task<string> GerarCnpjDeTesteAsync(CancellationToken ct)
+    {
+        while (true)
+        {
+            var cnpj = Cnpj.GerarValido(Random.Shared);
+            if (!await db.Lojas.AnyAsync(l => l.Cnpj == cnpj, ct)) return cnpj;
+        }
     }
 
     private AuthResponse CriarResposta(Loja loja)

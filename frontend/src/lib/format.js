@@ -2,6 +2,9 @@ const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL
 
 export const formatarPreco = (valor) => moeda.format(valor)
 
+/** "R$ 40,00" quando o preço é único; "R$ 37,50 a R$ 45,00" quando varia. */
+export const formatarFaixa = (menor, maior) => (menor === maior ? formatarPreco(menor) : `${formatarPreco(menor)} a ${formatarPreco(maior)}`)
+
 /** "28999990001" → "(28) 99999-0001" */
 export function formatarTelefone(valor = '') {
   const d = valor.replace(/\D/g, '').slice(0, 11)
@@ -23,8 +26,26 @@ export function formatarCnpj(valor = '') {
   return saida
 }
 
-/** Link para o WhatsApp a partir do telefone (só dígitos, com DDI do Brasil). */
-export const linkWhatsApp = (telefone) => `https://wa.me/55${telefone.replace(/\D/g, '')}`
+/** Link para o WhatsApp a partir do telefone (só dígitos, com DDI do Brasil), com mensagem pronta opcional. */
+export function linkWhatsApp(telefone, mensagem) {
+  const base = `https://wa.me/55${telefone.replace(/\D/g, '')}`
+  return mensagem ? `${base}?text=${encodeURIComponent(mensagem)}` : base
+}
+
+/** Link de ligação: "tel:+5528999990001". */
+export const linkTelefone = (telefone) => `tel:+55${telefone.replace(/\D/g, '')}`
+
+/** Rota até a loja no Google Maps, a partir do endereço cadastrado. */
+export function linkMapa({ rua, numero, bairro, cidade, uf }) {
+  const destino = `${rua}, ${numero}, ${bairro}, ${cidade} - ${uf}`
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destino)}`
+}
 
 /** Só aceita http/https: um "javascript:..." salvo no banco nunca vira link clicável. */
 export const linkSeguro = (url) => (/^https?:\/\//i.test(url ?? '') ? url : null)
+
+/** Iniciais para o selo da loja: "Malharia Caparaó" → "MC". */
+export function iniciais(nome = '') {
+  const palavras = nome.split(/\s+/).filter((p) => p.length > 2 || /^[A-ZÀ-Ú]/.test(p))
+  return (palavras.slice(0, 2).map((p) => p[0]).join('') || nome.slice(0, 2)).toUpperCase()
+}

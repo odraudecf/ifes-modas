@@ -31,6 +31,19 @@ public static partial class Cnpj
         return c[12] - '0' == dv1 && c[13] - '0' == dv2;
     }
 
+    /// <summary>
+    /// Gera um CNPJ numérico com dígitos verificadores corretos (matriz, "0001"), para lojas de teste
+    /// cadastradas sem CNPJ. Começa com "99" só para ficar fácil de reconhecer; não há garantia de que
+    /// não exista na Receita, por isso só o ambiente de teste usa.
+    /// </summary>
+    public static string GerarValido(Random sorteio)
+    {
+        var baseCnpj = $"99{sorteio.Next(0, 1_000_000):D6}0001";
+        var dv1 = CalcularDigito(baseCnpj, Pesos1);
+        var dv2 = CalcularDigito(baseCnpj + dv1, Pesos2);
+        return $"{baseCnpj}{dv1}{dv2}";
+    }
+
     /// <summary>"11222333000181" → "11.222.333/0001-81".</summary>
     public static string Formatar(string cnpj)
     {

@@ -32,6 +32,12 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<LojaService>();
 builder.Services.AddScoped<UniformeService>();
+builder.Services.Configure<CadastroOptions>(builder.Configuration.GetSection(CadastroOptions.Secao));
+builder.Services.AddHttpClient<ConsultaCnpjService>(c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(8); // uma API lenta não pode travar o cadastro: passa para a próxima
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("IfesModas/2.0 (+https://ifes-modas.onrender.com)");
+});
 
 // ---------- Autenticação JWT ----------
 builder.Services.AddOptions<JwtOptions>()

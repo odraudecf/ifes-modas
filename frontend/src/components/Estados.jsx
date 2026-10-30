@@ -16,7 +16,7 @@ export function Carregando({ texto = 'Carregando…' }) {
         {Array.from({ length: 9 }, (_, i) => <span key={i} />)}
       </div>
       <p>{texto}</p>
-      {demorando && <p>O servidor estava em repouso e está ligando. Isso pode levar até um minuto na primeira visita.</p>}
+      {demorando && <p className="estado-nota">O servidor estava em repouso e está ligando. Na primeira visita isso pode levar até um minuto.</p>}
     </div>
   )
 }
@@ -24,12 +24,18 @@ export function Carregando({ texto = 'Carregando…' }) {
 export function Erro({ mensagem, tentarDeNovo }) {
   return (
     <div className="estado-tela" role="alert">
+      <h2>Não foi possível carregar</h2>
       <p>{mensagem}</p>
       {tentarDeNovo && <button type="button" className="botao secundario" onClick={tentarDeNovo}>Tentar de novo</button>}
     </div>
   )
 }
 
-export function Vazio({ children }) {
-  return <div className="estado-tela">{children}</div>
+export function Vazio({ titulo, children }) {
+  return (
+    <div className="estado-tela">
+      {titulo && <h2>{titulo}</h2>}
+      {children}
+    </div>
+  )
 }

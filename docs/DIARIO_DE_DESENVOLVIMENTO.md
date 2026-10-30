@@ -169,3 +169,98 @@ A partir daqui, todo push na `main` com testes verdes publica a API e o front so
 ---
 
 **Falso alarme investigado (Etapa 6):** na primeira subida apareceu `fail: Failed executing DbCommand ... FROM "__EFMigrationsHistory"`. É o EF tentando ler o histórico antes de criar a tabela, num banco vazio; só acontece no primeiro boot. Não exigiu correção.
+
+---
+
+## Etapa 8 — Novo layout
+
+A primeira versão do front copiava o visual do TCC. Agora o grupo pediu um layout novo, mais moderno e fácil de usar, em todas as páginas.
+
+**Identidade visual**
+- Cores da logo do Ifes: o verde em detalhes, um verde-escuro ("mata") para títulos e faixas, e o vermelho só para marcar a página atual, erros e exclusão.
+- Uma única fonte, **Archivo**: títulos na largura condensada (como etiqueta de roupa) e texto na largura normal.
+- Elemento próprio: a **etiqueta**, com borda de pesponto tracejado, usada em tamanhos, filtros e preços (`.etiqueta` em `base.css`).
+
+**O que mudou para quem compra**
+- **Início:** o primeiro bloco é uma busca: escolher a peça (camisa padrão, agropecuária, bermuda ou calça) e o tamanho leva direto às lojas que têm.
+- **Lojas:** filtros por peça, tamanho e cidade, busca por nome, bairro ou cidade, e o preço de cada loja; com uma peça escolhida, a lista vem do menor para o maior preço. Os filtros ficam na URL (`/lojas?peca=bermuda&tamanho=G`), então dá para compartilhar o link.
+- **Página da loja:** botões de WhatsApp, ligar e "Como chegar" (Google Maps). Cada tamanho é uma etiqueta que abre o WhatsApp com a mensagem pronta: *"Vi no Ifes Modas: Camisa padrão masculina, tamanho M, por R$ 40,00. Ainda tem?"*.
+- **Doações:** dois caminhos (doar e receber) em passos, contato com o campus e perguntas frequentes.
+- **Sobre:** história das duas versões, o dado da pesquisa do TCC e a equipe.
+
+**O que mudou para a loja**
+- **Cadastro em 3 etapas** (loja, endereço, acesso), com conferência antes de avançar e foco no primeiro campo errado. Se a API recusar algum campo, o formulário volta à etapa dele.
+- **Área da loja** com menu lateral (abas no celular): visão geral com o que falta preencher e o resumo do catálogo, roupas e dados da loja.
+- **Roupas:** um painel lateral para adicionar **vários tamanhos de uma vez** com o mesmo preço. Tamanhos já cadastrados aparecem riscados, o que evita item repetido.
+- Mostrar/ocultar senha, e uma barra fixa para salvar os dados da loja.
+
+**Decisão técnica:** a listagem da API (RF03) traz só nome e bairro. Para mostrar preços na página de lojas, o front busca a página de cada loja em paralelo (`useLojasComCatalogo.js`). Com poucas lojas isso é rápido. Se o número crescer, o caminho é um endpoint de busca na API.
+
+**Como testamos:** API e Postgres locais (sem tocar no banco de produção) e todas as telas no Chrome, no computador e num iframe de 390px simulando o celular: busca, filtros, WhatsApp com mensagem pronta, login, cadastro completo, adicionar 3 tamanhos de uma vez, editar, excluir e alterar dados. Lint e build sem avisos.
+
+---
+
+## Etapa 9 — Branch `Dev` e ambiente de teste
+
+Até aqui, todo push ia direto para a `main`, e a `main` publica em produção. Para mudanças maiores, como o layout novo, o grupo quis **ver o resultado no ar antes** de mexer no site oficial.
+
+- **Branch `Dev`:** onde o trabalho acontece. O layout novo foi o primeiro commit dela.
+- **Ambiente de teste completo**, separado da produção:
+  - **Banco:** uma *branch* do Neon chamada `dev`. É uma cópia do banco de produção no momento da criação, mas o que se grava nela não volta para a produção.
+  - **Render:** um segundo Blueprint (`render.dev.yaml`) com `ifes-modas-api-dev` e `ifes-modas-dev`, os dois apontando para a branch `Dev`. A chave JWT é outra, então um token do teste não vale na produção.
+- **CI/CD:** o mesmo workflow roda na `Dev` (testes, lint, Docker) e, se tudo passar, chama os hooks de teste (`*_DEV`). A expressão que escolhe o hook só devolve o hook de produção quando a branch é `main`. Assim, um push na `Dev` nunca publica em produção.
+- **Para ir para produção:** Pull Request da `Dev` para a `main`. O CI roda de novo no PR e o merge dispara o deploy oficial.
+
+**Verificação do ambiente de teste (30/10):** o grupo criou a branch `dev` no Neon, o Blueprint de teste no Render e os secrets `_DEV`. O primeiro workflow na `Dev` publicou API e front de teste, e a verificação com `curl` deu:
+
+| Verificação | Resultado |
+|---|---|
+| `/health`, `/api/lojas`, Swagger | 200 |
+| Rota protegida sem token | 401 |
+| CORS da API de teste | libera só `ifes-modas-dev.onrender.com`, não o site de produção |
+| JS do front de teste | chama `ifes-modas-api-dev.onrender.com` e já tem o layout novo |
+| Item criado no teste (calça 59, R$ 1,23) | aparece no teste e **não** aparece em produção; depois foi apagado |
+| Token do teste usado na API de produção | 401 (chaves JWT diferentes) |
+| Produção | continua com o layout antigo até o merge na `main` |
+
+---
+
+## Etapa 10 — Cadastro pelo CNPJ e navbar verde
+
+**Nova regra de negócio:** o cadastro começa pelo CNPJ. Ao digitar um CNPJ válido, a API busca os dados públicos na Receita e o formulário já chega com nome, telefone e endereço preenchidos. A loja só confere e ajusta.
+
+- **Consulta (`GET /api/cnpj/{cnpj}`, `ConsultaCnpjService.cs`):** tenta três APIs gratuitas em sequência, **BrasilAPI → CNPJá → ReceitaWS**. Se uma estiver fora do ar ou no limite de uso, passa para a próxima. O front chama a nossa API, e não as externas direto, para não depender de CORS de terceiros e poder trocar de fornecedor sem mexer no site.
+  - Cada fornecedor responde num formato diferente; o serviço traduz os três para o mesmo formato do formulário.
+  - A Receita guarda tudo em maiúsculas: "MALHARIA EXEMPLO DO CAPARAO LTDA" vira "Malharia Exemplo do Caparao LTDA".
+  - Respostas: 404 se ninguém conhece o CNPJ, 503 se as três APIs falharem. Nos dois casos, a loja preenche à mão.
+  - Se a situação na Receita não for "Ativa", o formulário avisa.
+- **Regra por ambiente (`Cadastro:ExigirCnpj`):** em produção, o CNPJ é **obrigatório** (padrão `true`). No ambiente de teste (`render.dev.yaml`) fica `false`: aparece a opção "Cadastrar sem CNPJ", e a API gera um CNPJ fictício válido, que vira o login da loja (aparece na mensagem de boas-vindas e no painel). Quem garante a regra é a API; o front só lê `GET /api/auth/regras` para mostrar ou esconder a opção.
+- **Etapas do cadastro:** o CNPJ saiu da etapa "Acesso" e foi para a etapa "Loja", como primeiro campo. A etapa "Acesso" mostra o CNPJ de novo ("Seu login") e pede só a criação da senha.
+- **Navbar** verde-escura (a mesma cor do rodapé), também no menu do celular.
+
+**Testes:** 17 novos, total de **80**. As APIs de CNPJ são **simuladas** nos testes, que nunca acessam a internet: CNPJ encontrado, primeira API fora do ar (usa a segunda), ninguém conhece (404), todas fora (503), CNPJ inválido (400 sem consultar ninguém), cadastro sem CNPJ em produção (400) e no teste (gera CNPJ e o login funciona).
+**Teste de mutação:** desligando de propósito a exigência de CNPJ, o teste de produção falhou, como deveria.
+**No navegador:** busca real com o CNPJ público do Banco do Brasil (preencheu nome, telefone e endereço), cadastro completo sem CNPJ no modo teste e CNPJ barrado no modo produção.
+
+---
+
+## Etapa 11 — O site responde às ações
+
+Pedido do grupo: hovers e mais coisas clicáveis, para o site "responder" ao usuário.
+
+- **`styles/interacoes.css`**, carregado por último, junta toda a resposta visual:
+  - **Hover** (só em aparelhos com mouse: no celular o hover "gruda" depois do toque): botões sobem e ganham sombra; etiquetas ficam verdes; cartões de loja sobem, o selo muda de cor e a seta anda; fotos dão um zoom leve.
+  - **Clique/toque:** o elemento "afunda" (`scale(0.98)`), que no celular é a resposta ao dedo.
+  - **Depois de uma ação:** avisos e o resultado da busca de CNPJ aparecem deslizando, e a etiqueta marcada dá um pulo curto.
+  - Quem pede menos movimento no sistema não vê animação nenhuma.
+- **Ficaram clicáveis:**
+  - na página inicial, o título (leva às lojas), a foto (camisa padrão), os três passos do "Como funciona" (o 1º sobe até a busca), a faixa de doação inteira e o título da faixa de lojistas;
+  - o endereço da loja, que abre o Google Maps;
+  - o bloco "Fale com o campus" inteiro, nas Doações;
+  - na área da loja: as pendências inteiras; as linhas do catálogo da visão geral, que abrem Roupas já filtrado na peça (ou o "Adicionar" com a peça marcada, se ela falta); e a linha de cada roupa, que abre a edição.
+- **Link dentro de link não é permitido em HTML:** onde o bloco inteiro virou link, o "botão" de dentro passou a ser só visual (`<span class="botao">`).
+
+**Teste no Chrome:** hover e clique em cada um desses pontos, navegação de cada link novo e console sem erros.
+
+**Sobre: uma equipe por versão.** A seção "Equipe" mostrava os seis alunos do TCC como se fossem a equipe das duas versões. Agora "Versões e equipes" tem duas abas, uma para cada ano: **2024** (versão 1.0, os seis alunos da turma 2022–2024) e **2026** (versão 2.0, Eduardo Castro Fernandes). O ano escolhido fica verde-escuro, com uma seta apontando para a equipe logo abaixo, e cada aba diz quantas pessoas formam aquela equipe. A página abre na versão atual (2026). As abas seguem o padrão acessível (`role="tab"`) e trocam pelas setas do teclado.
+

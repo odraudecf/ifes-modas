@@ -8,7 +8,7 @@ public record CadastroRequest(
     [Required(ErrorMessage = "Informe o telefone.")] string Telefone,
     [StringLength(255)] string? Instagram,
     [StringLength(255)] string? Facebook,
-    [Required(ErrorMessage = "Informe o CNPJ.")] string Cnpj,
+    string? Cnpj, // obrigatório em produção; a regra fica no AuthService porque muda por ambiente
     [Required(ErrorMessage = "Informe a senha."), StringLength(72, MinimumLength = 6, ErrorMessage = "A senha deve ter entre 6 e 72 caracteres.")] string Senha,
     [Required(ErrorMessage = "Confirme a senha.")] string ConfirmarSenha,
     [Required] EnderecoDto Endereco);

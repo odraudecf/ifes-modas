@@ -26,6 +26,12 @@ public class AuthController(AuthService auth) : ControllerBase
         return CreatedAtAction(nameof(LojasController.Obter), "Lojas", new { id = resposta.Loja.Id }, resposta);
     }
 
+    /// <summary>Regras do cadastro neste ambiente. Em produção o CNPJ é sempre obrigatório.</summary>
+    [HttpGet("regras")]
+    [DisableRateLimiting]
+    [ProducesResponseType<RegrasCadastroDto>(StatusCodes.Status200OK)]
+    public RegrasCadastroDto Regras() => auth.Regras();
+
     /// <summary>Login com CNPJ e senha (RF02). Devolve um JWT para usar no botão "Authorize".</summary>
     /// <response code="200">Login efetuado.</response>
     /// <response code="401">CNPJ ou senha inválidos.</response>
