@@ -1,0 +1,39 @@
+# Blueprint do AMBIENTE DE TESTE: API e front publicados a partir da branch Dev.
+# No Render: New → Blueprint → este repositório → branch Dev → Blueprint Path: render.dev.yaml.
+# Fica separado do render.yaml (produção) para que nada aqui mexa nos serviços da main.
+# Banco: uma branch "dev" do Neon (cópia do banco de produção, isolada dele).
+services:
+  - type: web
+    name: ifes-modas-api-dev
+    runtime: docker
+    plan: free
+    region: virginia            # mesma região do banco no Neon (AWS us-east-1)
+    branch: Dev
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: "off"    # quem publica é o GitHub Actions, depois dos testes
+    envVars:
+      - key: ConnectionStrings__Default
+        sync: false             # o Render pede o valor na criação (string da branch "dev" do Neon)
+      - key: Jwt__Key
+        generateValue: true     # chave própria: token de teste não vale em produção
+      - key: Cors__Origins
+        value: https://ifes-modas-dev.onrender.com
+
+  - type: web
+    name: ifes-modas-dev
+    runtime: static
+    branch: Dev
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeployTrigger: "off"
+    routes:
+      - type: rewrite           # SPA: qualquer rota (/lojas/3, /login...) abre o index.html
+        source: /*
+        destination: /index.html
+    envVars:
+      # Lida pelo Vite no BUILD (fica embutida no JS): mudar exige novo deploy do front.
+      - key: VITE_API_URL
+        value: https://ifes-modas-api-dev.onrender.com

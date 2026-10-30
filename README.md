@@ -11,6 +11,7 @@ Vitrine das lojas que vendem os **uniformes do Ifes Campus de Alegre**. O aluno 
 | **Site** | https://ifes-modas.onrender.com |
 | **API (Swagger)** | https://ifes-modas-api.onrender.com/swagger |
 | **Health check** | https://ifes-modas-api.onrender.com/health |
+| **Ambiente de teste** (branch `Dev`) | https://ifes-modas-dev.onrender.com · API: https://ifes-modas-api-dev.onrender.com/swagger |
 
 > **Primeira visita lenta?** No plano gratuito do Render a API "dorme" depois de 15 minutos sem uso e leva até ~1 minuto para acordar. O site avisa enquanto isso.
 
@@ -115,7 +116,17 @@ cd backend && dotnet test        # 63 testes (unitários + integração)
 cd frontend && npm run lint && npm run build
 ```
 
-## CI/CD: cada push na `main` publica sozinho
+## Branches e ambientes
+
+| Branch | Para quê | Publica em | Banco (Neon) | Blueprint |
+|---|---|---|---|---|
+| `main` | Versão oficial, a que o professor avalia | **Produção**: ifes-modas.onrender.com | branch `main` | `render.yaml` |
+| `Dev` | Mudanças em andamento, para o grupo testar antes | **Teste**: ifes-modas-dev.onrender.com | branch `dev` (cópia isolada) | `render.dev.yaml` |
+
+Fluxo: trabalhar na `Dev` → push → conferir no ambiente de teste → **Pull Request da `Dev` para a `main`** → o merge publica em produção.
+O teste usa outro banco e outra chave JWT: cadastrar, editar ou excluir no teste não mexe em nada da produção.
+
+## CI/CD: cada push na `main` (ou na `Dev`) publica sozinho
 
 ```
 push na main ─► GitHub Actions
@@ -127,6 +138,8 @@ push na main ─► GitHub Actions
                 deploy: Deploy Hooks do Render ─► API (Docker) e Front (estático) no ar
 ```
 
+Na `Dev` é igual, mas o deploy usa os hooks do ambiente de teste (`RENDER_DEPLOY_HOOK_API_DEV` e `RENDER_DEPLOY_HOOK_FRONT_DEV`). Cada branch só enxerga os hooks do próprio ambiente.
+
 O auto-deploy do próprio Render fica **desligado** (`render.yaml`). Quem manda publicar é o Actions, depois dos testes. Código que quebra teste não chega à produção.
 
 ### Configuração da produção (feita uma vez)
@@ -135,6 +148,13 @@ O auto-deploy do próprio Render fica **desligado** (`render.yaml`). Quem manda 
 2. **Render:** New → **Blueprint** → este repositório. Preencher `ConnectionStrings__Default` com a string do Neon (a `Jwt__Key` o Render gera sozinho).
 3. Em cada serviço do Render: Settings → **Deploy Hook** → copiar a URL.
 4. **GitHub** → Settings → Secrets and variables → Actions: criar `RENDER_DEPLOY_HOOK_API` e `RENDER_DEPLOY_HOOK_FRONT`.
+
+### Configuração do ambiente de teste (feita uma vez)
+
+1. **Neon:** no projeto, Branches → **Create branch** `dev` a partir da `main` e copiar a connection string dessa branch.
+2. **Render:** New → **Blueprint** → este repositório, branch **`Dev`**, Blueprint Path **`render.dev.yaml`**. Preencher `ConnectionStrings__Default` com a string da branch `dev`.
+3. Em cada serviço de teste (`ifes-modas-api-dev` e `ifes-modas-dev`): Settings → **Deploy Hook** → copiar a URL.
+4. **GitHub** → Secrets: criar `RENDER_DEPLOY_HOOK_API_DEV` e `RENDER_DEPLOY_HOOK_FRONT_DEV`.
 
 ## Estrutura
 

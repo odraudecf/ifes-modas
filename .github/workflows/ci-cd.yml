@@ -1,14 +1,15 @@
 # CI/CD do Ifes Modas
 # Em todo push/PR: compila e testa a API, compila o front e valida o Dockerfile.
-# Só na main (push ou "Run workflow" manual) E com tudo verde: dispara o deploy da API e do front no Render (Deploy Hooks).
-# Assim, código que quebra um teste nunca chega à produção.
+# Com tudo verde, dispara o deploy no Render (Deploy Hooks), conforme a branch:
+#   main → produção (render.yaml)      Dev → ambiente de teste (render.dev.yaml)
+# Também roda pelo botão "Run workflow". Código que quebra um teste não é publicado em nenhum dos dois.
 name: CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [main, Dev]
   pull_request:
-    branches: [main]
+    branches: [main, Dev]
   workflow_dispatch:
 
 concurrency:
@@ -62,13 +63,15 @@ jobs:
       - run: docker build -t ifes-modas-api:ci backend
 
   deploy:
-    name: Deploy no Render
+    name: Deploy no Render (${{ github.ref_name == 'main' && 'produção' || 'teste' }})
     needs: [backend, frontend, docker]
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/Dev')
     runs-on: ubuntu-latest
     env:
-      HOOK_API: ${{ secrets.RENDER_DEPLOY_HOOK_API }}
-      HOOK_FRONT: ${{ secrets.RENDER_DEPLOY_HOOK_FRONT }}
+      # Cada branch só enxerga os hooks do próprio ambiente: a Dev nunca publica em produção.
+      HOOK_API: ${{ github.ref == 'refs/heads/main' && secrets.RENDER_DEPLOY_HOOK_API || '' }}${{ github.ref == 'refs/heads/Dev' && secrets.RENDER_DEPLOY_HOOK_API_DEV || '' }}
+      HOOK_FRONT: ${{ github.ref == 'refs/heads/main' && secrets.RENDER_DEPLOY_HOOK_FRONT || '' }}${{ github.ref == 'refs/heads/Dev' && secrets.RENDER_DEPLOY_HOOK_FRONT_DEV || '' }}
+      SUFIXO: ${{ github.ref == 'refs/heads/Dev' && '_DEV' || '' }}
     steps:
       - name: Dispara deploy da API
         if: env.HOOK_API != ''
@@ -78,4 +81,4 @@ jobs:
         run: curl -fsS -X POST "$HOOK_FRONT" > /dev/null && echo "Deploy do front solicitado."
       - name: Aviso se os secrets não existem
         if: env.HOOK_API == '' || env.HOOK_FRONT == ''
-        run: echo "::warning::Configure RENDER_DEPLOY_HOOK_API e RENDER_DEPLOY_HOOK_FRONT em Settings → Secrets → Actions."
+        run: echo "::warning::Configure RENDER_DEPLOY_HOOK_API${SUFIXO} e RENDER_DEPLOY_HOOK_FRONT${SUFIXO} em Settings → Secrets → Actions."

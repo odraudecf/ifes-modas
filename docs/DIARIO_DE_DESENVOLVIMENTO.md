@@ -198,3 +198,16 @@ A primeira versão do front copiava o visual do TCC. Agora o grupo pediu um layo
 
 **Como testamos:** API e Postgres locais (sem tocar no banco de produção) e todas as telas no Chrome, no computador e num iframe de 390px simulando o celular: busca, filtros, WhatsApp com mensagem pronta, login, cadastro completo, adicionar 3 tamanhos de uma vez, editar, excluir e alterar dados. Lint e build sem avisos.
 
+---
+
+## Etapa 9 — Branch `Dev` e ambiente de teste
+
+Até aqui, todo push ia direto para a `main`, e a `main` publica em produção. Para mudanças maiores, como o layout novo, o grupo quis **ver o resultado no ar antes** de mexer no site oficial.
+
+- **Branch `Dev`:** onde o trabalho acontece. O layout novo foi o primeiro commit dela.
+- **Ambiente de teste completo**, separado da produção:
+  - **Banco:** uma *branch* do Neon chamada `dev`. É uma cópia do banco de produção no momento da criação, mas o que se grava nela não volta para a produção.
+  - **Render:** um segundo Blueprint (`render.dev.yaml`) com `ifes-modas-api-dev` e `ifes-modas-dev`, os dois apontando para a branch `Dev`. A chave JWT é outra, então um token do teste não vale na produção.
+- **CI/CD:** o mesmo workflow roda na `Dev` (testes, lint, Docker) e, se tudo passar, chama os hooks de teste (`*_DEV`). A expressão que escolhe o hook só devolve o hook de produção quando a branch é `main`. Assim, um push na `Dev` nunca publica em produção.
+- **Para ir para produção:** Pull Request da `Dev` para a `main`. O CI roda de novo no PR e o merge dispara o deploy oficial.
+
