@@ -29,6 +29,7 @@ O trabalho libera e recomenda IA. A regra é: **o código é nosso. Nós encomen
 | 5 | Docker + GitHub Actions + Render | Dockerfile, compose, workflow, `render.yaml` | Primeiro push com os 4 jobs verdes |
 | 6 | Front em React | Telas, cliente HTTP, autenticação | Lint, build e navegação real no Chrome |
 | 7 | Documentar para o seminário | Este registro, o diário, o README e o roteiro | Leitura e revisão do grupo |
+| 8 | Refazer o layout inteiro, mais moderno e intuitivo | Nova identidade visual, busca por peça e tamanho, cadastro em etapas, painel da loja | Teste de cada tela no Chrome (computador e celular de 390px) com a API e um banco locais |
 
 ## Erros da IA e como foram pegos
 
@@ -45,6 +46,9 @@ O trabalho libera e recomenda IA. A regra é: **o código é nosso. Nós encomen
 | 7 | O script do Postgres temporário montou o caminho a partir da URL do arquivo **sem decodificar** ("Eduardo%20Castro") | O `initdb` falhou com "Permission denied" | `fileURLToPath()` + forçar UTF-8 (o padrão do Windows seria WIN1252) |
 | 8 | No PowerShell 5.1, `git config ... ""` perdeu o argumento vazio | Erro "wrong number of arguments" | O mesmo comando no Bash |
 | 9 | No `render.yaml`, a IA usou `fromService → property: host` achando que daria o endereço público. Na verdade é o **nome interno** do serviço (`ifes-modas-api`): o front chamava `https://ifes-modas-api` e o CORS liberava `https://ifes-modas` | **Verificação em produção** depois do primeiro deploy: o preflight CORS voltou sem `Access-Control-Allow-Origin` e o JS publicado tinha a URL errada. Todos os testes locais passavam, porque o erro estava só na configuração da nuvem | URLs públicas fixas no `render.yaml` + novo deploy. Lição: teste de produção é obrigatório, não só o CI |
+| 10 | Ao montar de novo o Postgres temporário (para testar o layout), a IA **repetiu o erro nº 7**: caminho sem decodificar ("Eduardo%20Castro") | O `initdb` falhou de novo com "Permission denied" | A mesma correção (`fileURLToPath`). Lição: o registro de erros só ajuda se for consultado antes de repetir a tarefa |
+| 11 | No celular, a área da loja ficava **mais larga que a tela** (dava para arrastar para o lado) | Teste num iframe de 390px no Chrome, medindo `scrollWidth` | A coluna da grade era `1fr`, que cresce até caber a linha de abas sem quebra; trocamos por `minmax(0, 1fr)` em todas as grades de uma coluna |
+| 12 | Guardou o "último formulário de roupa" numa variável fora do componente e a alterava durante o uso | Aviso do `oxlint` (`react(globals)`) | O valor passou a ser estado do componente pai |
 
 ### Os testes provam alguma coisa? (teste de mutação)
 

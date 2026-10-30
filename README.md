@@ -27,7 +27,7 @@ Vitrine das lojas que vendem os **uniformes do Ifes Campus de Alegre**. O aluno 
 | Segurança | **JWT** (HMAC-SHA256) · **BCrypt** para senhas · rate limit no login · CORS restrito |
 | Documentação da API | **Swashbuckle** 10 (Swagger UI com botão *Authorize*) |
 | Testes | **xUnit** · `WebApplicationFactory` (testes de integração com a API real) |
-| Front | **React 19** + **Vite 8** · React Router |
+| Front | **React 19** + **Vite 8** · React Router · ícones Lucide |
 | Entrega | **Docker** (multi-stage) · **GitHub Actions** · **Render** (API em Docker + site estático) |
 
 ## O que mudou em relação ao sistema antigo

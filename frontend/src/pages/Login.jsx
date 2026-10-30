@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.js'
-import { Campo } from '../components/Campo.jsx'
+import { Campo, CampoSenha } from '../components/Campo.jsx'
+import { MolduraAcesso } from '../components/MolduraAcesso.jsx'
 import { formatarCnpj } from '../lib/format.js'
 
 /** RF02: login da loja com CNPJ e senha. */
@@ -31,29 +32,26 @@ export default function Login() {
   }
 
   return (
-    <div className="form-pagina">
-      <form className="cartao-form" onSubmit={enviar} noValidate>
-        <h1>Login</h1>
+    <MolduraAcesso>
+      <form className="formulario" onSubmit={enviar} noValidate>
+        <h1>Entrar na área da loja</h1>
+        <p className="formulario-sub">Use o CNPJ e a senha do cadastro.</p>
         {erro && <div className="alerta" role="alert">{erro}</div>}
 
-        <fieldset className="grupo-campos">
-          <Campo
-            rotulo="CNPJ"
-            inputMode="text"
-            placeholder="00.000.000/0000-00"
-            value={formatarCnpj(cnpj)}
-            onChange={(e) => setCnpj(e.target.value)}
-            autoComplete="username"
-            required
-          />
-          <Campo rotulo="Senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="current-password" required />
-        </fieldset>
+        <Campo
+          rotulo="CNPJ"
+          inputMode="text"
+          placeholder="00.000.000/0000-00"
+          value={formatarCnpj(cnpj)}
+          onChange={(e) => setCnpj(e.target.value)}
+          autoComplete="username"
+          required
+        />
+        <CampoSenha rotulo="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="current-password" required />
 
-        <div className="form-acoes">
-          <button className="botao" disabled={enviando}>{enviando ? 'Entrando…' : 'Entrar'}</button>
-        </div>
-        <p className="form-rodape">Ainda não tem conta? <Link to="/cadastro">Cadastre sua loja</Link></p>
+        <button className="botao grande largo" disabled={enviando}>{enviando ? 'Entrando…' : 'Entrar'}</button>
+        <p className="formulario-rodape">Ainda não tem cadastro? <Link to="/cadastro">Cadastrar minha loja</Link></p>
       </form>
-    </div>
+    </MolduraAcesso>
   )
 }

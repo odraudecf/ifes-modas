@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth/AuthContext.js'
-import { CamposLoja } from '../components/CamposLoja.jsx'
+import { CamposContato, CamposEndereco, CamposRedes } from '../components/CamposLoja.jsx'
 import { Carregando, Erro } from '../components/Estados.jsx'
 import { useApi } from '../lib/useApi.js'
 
@@ -14,6 +13,12 @@ export default function EditarLoja() {
   if (erro) return <Erro mensagem={erro.message} tentarDeNovo={recarregar} />
   return <Formulario inicial={dados} />
 }
+
+const BLOCOS = [
+  { titulo: 'Contato', texto: 'Nome que aparece no site e o número que os alunos chamam no WhatsApp.', Campos: CamposContato },
+  { titulo: 'Endereço', texto: 'Usado no botão "Como chegar" da sua página.', Campos: CamposEndereco },
+  { titulo: 'Redes sociais', texto: 'Aparecem como botões na sua página.', Campos: CamposRedes },
+]
 
 function Formulario({ inicial }) {
   const { renomear } = useAuth()
@@ -28,6 +33,12 @@ function Formulario({ inicial }) {
   const [mensagem, setMensagem] = useState(null)
   const [enviando, setEnviando] = useState(false)
 
+  // Qualquer mudança apaga o "Alterações salvas" (senão ele fica mentindo).
+  function alterar(valores) {
+    setLoja(valores)
+    if (mensagem?.tipo === 'sucesso') setMensagem(null)
+  }
+
   async function salvar(e) {
     e.preventDefault()
     setErros({})
@@ -36,7 +47,7 @@ function Formulario({ inicial }) {
     try {
       const atualizada = await api('/api/lojas/me', { method: 'PUT', body: loja, auth: true })
       renomear(atualizada.nome)
-      setMensagem({ tipo: 'sucesso', texto: 'Dados salvos.' })
+      setMensagem({ tipo: 'sucesso', texto: 'Alterações salvas.' })
     } catch (err) {
       setErros(err.campos ?? {})
       setMensagem({ tipo: 'erro', texto: err.message })
@@ -46,19 +57,28 @@ function Formulario({ inicial }) {
   }
 
   return (
-    <div className="form-pagina">
-      <form className="cartao-form" onSubmit={salvar} noValidate>
+    <form onSubmit={salvar} noValidate>
+      <div className="painel-cabeca">
         <h1>Dados da loja</h1>
-        <p className="form-rodape" style={{ marginTop: -12, marginBottom: 20 }}>CNPJ {inicial.cnpj}</p>
-        {mensagem && <div className={`alerta${mensagem.tipo === 'sucesso' ? ' sucesso' : ''}`} role="status">{mensagem.texto}</div>}
+        <p>O CNPJ não pode ser alterado.</p>
+      </div>
 
-        <CamposLoja valores={loja} alterar={setLoja} erros={erros} />
+      {BLOCOS.map(({ titulo, texto, Campos }) => (
+        <section key={titulo} className="bloco-config" aria-label={titulo}>
+          <div>
+            <h2>{titulo}</h2>
+            <p>{texto}</p>
+          </div>
+          <div className="bloco-config-campos">
+            <Campos valores={loja} alterar={alterar} erros={erros} />
+          </div>
+        </section>
+      ))}
 
-        <div className="form-acoes">
-          <Link to="/gerenciamento" className="botao secundario">Voltar</Link>
-          <button className="botao" disabled={enviando}>{enviando ? 'Salvando…' : 'Salvar alterações'}</button>
-        </div>
-      </form>
-    </div>
+      <div className="barra-salvar">
+        {mensagem && <p className={`barra-salvar-msg${mensagem.tipo === 'erro' ? ' erro' : ''}`} role="status">{mensagem.texto}</p>}
+        <button className="botao grande" disabled={enviando}>{enviando ? 'Salvando…' : 'Salvar alterações'}</button>
+      </div>
+    </form>
   )
 }

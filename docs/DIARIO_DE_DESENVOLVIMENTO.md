@@ -169,3 +169,32 @@ A partir daqui, todo push na `main` com testes verdes publica a API e o front so
 ---
 
 **Falso alarme investigado (Etapa 6):** na primeira subida apareceu `fail: Failed executing DbCommand ... FROM "__EFMigrationsHistory"`. É o EF tentando ler o histórico antes de criar a tabela, num banco vazio; só acontece no primeiro boot. Não exigiu correção.
+
+---
+
+## Etapa 8 — Novo layout
+
+A primeira versão do front copiava o visual do TCC. Agora o grupo pediu um layout novo, mais moderno e fácil de usar, em todas as páginas.
+
+**Identidade visual**
+- Cores da logo do Ifes: o verde em detalhes, um verde-escuro ("mata") para títulos e faixas, e o vermelho só para marcar a página atual, erros e exclusão.
+- Uma única fonte, **Archivo**: títulos na largura condensada (como etiqueta de roupa) e texto na largura normal.
+- Elemento próprio: a **etiqueta**, com borda de pesponto tracejado, usada em tamanhos, filtros e preços (`.etiqueta` em `base.css`).
+
+**O que mudou para quem compra**
+- **Início:** o primeiro bloco é uma busca: escolher a peça (camisa padrão, agropecuária, bermuda ou calça) e o tamanho leva direto às lojas que têm.
+- **Lojas:** filtros por peça, tamanho e cidade, busca por nome, bairro ou cidade, e o preço de cada loja; com uma peça escolhida, a lista vem do menor para o maior preço. Os filtros ficam na URL (`/lojas?peca=bermuda&tamanho=G`), então dá para compartilhar o link.
+- **Página da loja:** botões de WhatsApp, ligar e "Como chegar" (Google Maps). Cada tamanho é uma etiqueta que abre o WhatsApp com a mensagem pronta: *"Vi no Ifes Modas: Camisa padrão masculina, tamanho M, por R$ 40,00. Ainda tem?"*.
+- **Doações:** dois caminhos (doar e receber) em passos, contato com o campus e perguntas frequentes.
+- **Sobre:** história das duas versões, o dado da pesquisa do TCC e a equipe.
+
+**O que mudou para a loja**
+- **Cadastro em 3 etapas** (loja, endereço, acesso), com conferência antes de avançar e foco no primeiro campo errado. Se a API recusar algum campo, o formulário volta à etapa dele.
+- **Área da loja** com menu lateral (abas no celular): visão geral com o que falta preencher e o resumo do catálogo, roupas e dados da loja.
+- **Roupas:** um painel lateral para adicionar **vários tamanhos de uma vez** com o mesmo preço. Tamanhos já cadastrados aparecem riscados, o que evita item repetido.
+- Mostrar/ocultar senha, e uma barra fixa para salvar os dados da loja.
+
+**Decisão técnica:** a listagem da API (RF03) traz só nome e bairro. Para mostrar preços na página de lojas, o front busca a página de cada loja em paralelo (`useLojasComCatalogo.js`). Com poucas lojas isso é rápido. Se o número crescer, o caminho é um endpoint de busca na API.
+
+**Como testamos:** API e Postgres locais (sem tocar no banco de produção) e todas as telas no Chrome, no computador e num iframe de 390px simulando o celular: busca, filtros, WhatsApp com mensagem pronta, login, cadastro completo, adicionar 3 tamanhos de uma vez, editar, excluir e alterar dados. Lint e build sem avisos.
+

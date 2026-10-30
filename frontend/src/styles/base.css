@@ -1,22 +1,44 @@
-/* Tokens visuais: a identidade do TCC original (verde Ifes, Poppins), agora centralizada em variáveis. */
+/*
+ * Identidade visual do Ifes Modas 2.0
+ * - Cores: o verde e o vermelho da logo do Ifes, com um verde-mata escuro para texto forte e faixas.
+ * - Tipo: Archivo, uma família só. Títulos na largura condensada (75%), como etiqueta de roupa;
+ *   texto corrido na largura normal.
+ * - Elemento próprio: a "etiqueta" (borda com pesponto tracejado), usada em tamanhos, filtros e preços.
+ */
 :root {
-  --verde-escuro: #00420c;   /* barra de navegação e rodapé */
-  --verde: #2f9e42;          /* ações, títulos, preços */
-  --verde-claro: #e6f3e8;    /* fundos de destaque suaves */
-  --vermelho: #c9242b;       /* o ponto da logo do Ifes; usado só em alertas e exclusão */
-  --papel: #eef0ec;          /* fundo das fotos de produto */
-  --tinta: #13261a;          /* texto principal */
-  --tinta-suave: #55645a;    /* texto secundário */
-  --borda: #d5dbd3;
-  --branco: #ffffff;
+  --verde: #2f9e41;          /* verde da logo do Ifes: preenchimentos e detalhes (não usar em texto pequeno) */
+  --verde-texto: #1d7a2f;    /* verde com contraste para texto, links e botões */
+  --mata: #0f3a1d;           /* títulos, faixas escuras, item selecionado */
+  --folha: #e3f1e5;          /* fundo verde claro */
+  --nevoa: #f2f5f1;          /* fundo de seções e fotos de produto */
+  --papel: #ffffff;
+  --tinta: #142218;          /* texto principal */
+  --tinta-2: #4a5a4f;        /* texto secundário */
+  --tinta-3: #65736a;        /* legendas */
+  --linha: #dde3db;
+  --linha-forte: #b7c2b5;
+  --vermelho: #c8202f;       /* o ponto da logo do Ifes: página atual, erro e exclusão */
 
-  --fonte: 'Poppins', system-ui, sans-serif;
-  --fonte-marca: 'Montserrat', 'Poppins', sans-serif;
+  --fonte: 'Archivo', system-ui, sans-serif;
 
+  /* Escala tipográfica (terça maior, 1.25) com base de 17px */
+  --t-xs: 0.8125rem;
+  --t-sm: 0.9375rem;
+  --t-base: 1.0625rem;
+  --t-md: 1.3125rem;
+  --t-lg: 1.625rem;
+  --t-xl: 2.0625rem;
+  --t-2xl: 2.5625rem;
+
+  /* Raios por hierarquia: etiqueta < controle < painel < foto */
+  --raio-etiqueta: 4px;
   --raio: 8px;
-  --raio-grande: 14px;
-  --largura: 1120px;
-  --topo-altura: 64px;
+  --raio-painel: 14px;
+  --raio-foto: 20px;
+
+  --largura: 1180px;
+  --topo-altura: 68px;
+  --anel: 0 0 0 3px rgb(47 158 65 / 0.25);
 }
 
 *,
@@ -32,11 +54,15 @@ html {
 body {
   margin: 0;
   font-family: var(--fonte);
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: var(--t-base);
+  line-height: 1.55;
   color: var(--tinta);
-  background: var(--branco);
+  background: var(--papel);
   -webkit-font-smoothing: antialiased;
+}
+
+body:has(dialog[open]) {
+  overflow: hidden;
 }
 
 #root {
@@ -47,6 +73,7 @@ body {
 
 main {
   flex: 1;
+  padding-bottom: 88px;
 }
 
 h1, h2, h3, h4 {
@@ -66,7 +93,8 @@ img {
 }
 
 a {
-  color: var(--verde);
+  color: var(--verde-texto);
+  text-underline-offset: 3px;
 }
 
 button,
@@ -84,8 +112,14 @@ select {
 .container {
   width: 100%;
   max-width: var(--largura);
-  margin: 0 auto;
-  padding: 0 16px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-inline: 24px;
+  }
 }
 
 .sr-only {
@@ -107,8 +141,289 @@ a.sr-only:focus {
   height: auto;
   clip: auto;
   padding: 8px 14px;
-  background: var(--branco);
+  background: var(--papel);
   border-radius: var(--raio);
+}
+
+/* ================= Botões ================= */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1.5px solid var(--verde-texto);
+  border-radius: var(--raio);
+  background: var(--verde-texto);
+  color: var(--papel);
+  font-weight: 600;
+  font-size: var(--t-sm);
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.botao:hover {
+  background: var(--mata);
+  border-color: var(--mata);
+}
+
+.botao:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.botao svg {
+  flex: none;
+}
+
+.botao.secundario {
+  background: var(--papel);
+  border-color: var(--linha-forte);
+  color: var(--tinta);
+}
+
+.botao.secundario:hover {
+  border-color: var(--tinta);
+}
+
+.botao.fantasma {
+  background: transparent;
+  border-color: transparent;
+  color: var(--tinta-2);
+}
+
+.botao.fantasma:hover {
+  background: var(--nevoa);
+  color: var(--tinta);
+}
+
+.botao.fantasma.perigo {
+  color: var(--vermelho);
+}
+
+.botao.perigo-cheio {
+  background: var(--vermelho);
+  border-color: var(--vermelho);
+}
+
+.botao.grande {
+  min-height: 52px;
+  padding: 0 24px;
+  font-size: var(--t-base);
+}
+
+.botao.pequeno {
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.botao.quadrado {
+  width: 44px;
+  padding: 0;
+}
+
+.botao.largo {
+  width: 100%;
+}
+
+/* ================= Etiqueta (tamanho, filtro, escolha) ================= */
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.etiqueta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--linha-forte);
+  border-radius: var(--raio-etiqueta);
+  background: var(--papel);
+  color: var(--tinta);
+  font-weight: 600;
+  font-size: var(--t-sm);
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+/* O pesponto: linha tracejada por dentro da borda, como na etiqueta costurada da roupa. */
+.etiqueta::after,
+.etiqueta-preco::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px dashed currentColor;
+  border-radius: 2px;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.etiqueta:hover:not(:disabled) {
+  border-color: var(--tinta);
+}
+
+.etiqueta[aria-pressed='true'] {
+  background: var(--mata);
+  border-color: var(--mata);
+  color: var(--papel);
+}
+
+.etiqueta[aria-pressed='true']::after {
+  opacity: 0.45;
+}
+
+.etiqueta:disabled {
+  background: var(--nevoa);
+  border-color: var(--linha);
+  color: var(--tinta-3);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+/* Escolhas com foto (peças) ficam em grade, todas do mesmo tamanho. */
+.etiquetas:has(.com-imagem) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.etiqueta.com-imagem {
+  justify-content: flex-start;
+  padding: 5px 14px 5px 5px;
+  text-align: left;
+}
+
+.etiqueta.com-imagem img {
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  object-fit: cover;
+  background: var(--nevoa);
+}
+
+.etiquetas.compactas .etiqueta {
+  min-width: 48px;
+  min-height: 40px;
+  padding: 6px 12px;
+}
+
+/* ================= Campos de formulário ================= */
+.grupo-campos {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.campo {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.campo label,
+.campo-rotulo {
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.campo input,
+.campo select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1.5px solid var(--linha-forte);
+  border-radius: var(--raio);
+  background: var(--papel);
+  font-size: var(--t-base);
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: none;
+  border-color: var(--verde-texto);
+  box-shadow: var(--anel);
+}
+
+.campo-caixa {
+  display: flex;
+  border: 1.5px solid var(--linha-forte);
+  border-radius: var(--raio);
+  background: var(--papel);
+  overflow: hidden;
+}
+
+.campo-caixa:focus-within {
+  border-color: var(--verde-texto);
+  box-shadow: var(--anel);
+}
+
+.campo .campo-caixa input {
+  flex: 1;
+  min-width: 0;
+  min-height: 45px;
+  border: 0;
+  border-radius: 0;
+}
+
+.campo .campo-caixa input:focus {
+  box-shadow: none;
+}
+
+.campo-prefixo {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-right: 1px solid var(--linha);
+  background: var(--nevoa);
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+}
+
+.campo-botao {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  color: var(--tinta-2);
+  cursor: pointer;
+}
+
+.campo.com-erro input,
+.campo.com-erro select,
+.campo.com-erro .campo-caixa {
+  border-color: var(--vermelho);
+}
+
+.campo-erro {
+  color: var(--vermelho);
+  font-size: var(--t-sm);
+}
+
+.campo-dica {
+  color: var(--tinta-3);
+  font-size: var(--t-sm);
+}
+
+.linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.linha.rua,
+.linha.cidade {
+  grid-template-columns: minmax(0, 1fr) 110px;
 }
 
 @media (prefers-reduced-motion: reduce) {
