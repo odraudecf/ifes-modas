@@ -1,6 +1,6 @@
 # CI/CD do Ifes Modas
 # Em todo push/PR: compila e testa a API, compila o front e valida o Dockerfile.
-# Só em push na main E com tudo verde: dispara o deploy da API e do front no Render (Deploy Hooks).
+# Só na main (push ou "Run workflow" manual) E com tudo verde: dispara o deploy da API e do front no Render (Deploy Hooks).
 # Assim, código que quebra um teste nunca chega à produção.
 name: CI/CD
 
@@ -64,7 +64,7 @@ jobs:
   deploy:
     name: Deploy no Render
     needs: [backend, frontend, docker]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       HOOK_API: ${{ secrets.RENDER_DEPLOY_HOOK_API }}

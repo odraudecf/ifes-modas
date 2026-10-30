@@ -99,7 +99,7 @@ São **63 testes**, em duas camadas:
   1. API: restore → build → **testes**
   2. Front: `npm ci` → lint → build
   3. Docker: `docker build` da imagem
-  4. **Deploy** (só na `main` e só se os 3 passarem): chama os *Deploy Hooks* do Render.
+  4. **Deploy** (só na `main` e só se os 3 passarem): chama os *Deploy Hooks* do Render. Também roda pelo botão **Run workflow** (aba Actions), útil para republicar sem precisar de commit.
 - **Render Blueprint** (`render.yaml`): cria a API (Docker) e o front (site estático) com o auto-deploy do Render **desligado**. Quem manda publicar é o Actions, depois dos testes. Código que quebra teste **nunca** chega à produção.
 - **Região:** Render e Neon ficam juntos em US East (Virgínia). O Render não tem região no Brasil. Com o banco em São Paulo e a API nos EUA, cada consulta cruzaria o continente.
 
