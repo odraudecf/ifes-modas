@@ -53,6 +53,8 @@ summary,
 .campo select,
 .campo-caixa,
 .busca,
+.versao,
+.versao-equipe,
 .inicio-foto-legenda {
   transition:
     background-color var(--rapido) var(--curva),
@@ -87,7 +89,8 @@ summary,
 .modelo:active,
 .inicio-foto:active,
 .faixa-doacao:active,
-.doacao-contato:active {
+.doacao-contato:active,
+.versao:active:not([aria-selected='true']) {
   transform: scale(0.98);
   transition-duration: 60ms;
 }
@@ -251,6 +254,19 @@ summary,
   .loja-endereco:hover {
     color: var(--verde-texto);
     text-decoration: underline;
+  }
+
+  /* Sobre: a aba que não está escolhida convida ao clique. */
+  .versao:hover:not([aria-selected='true']) {
+    border-color: var(--verde-texto);
+    background: var(--folha);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-leve);
+  }
+
+  .versao:hover:not([aria-selected='true']) .versao-equipe {
+    background: var(--verde-texto);
+    color: var(--papel);
   }
 
   /* Doações */

@@ -867,33 +867,117 @@ main:has(> .faixa-lojista:last-child) {
   color: var(--tinta-2);
 }
 
-.sobre-historia,
-.sobre-equipe {
+.sobre-versoes {
   grid-column: 1 / -1;
 }
 
-.sobre-historia ol {
+.versoes-dica {
+  margin: -14px 0 20px;
+  color: var(--tinta-2);
+}
+
+/* Abas de versão: o ano escolhido fica verde-escuro e "aponta" para a equipe logo abaixo. */
+.versoes {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: 16px;
 }
 
-.sobre-historia li {
-  padding-left: 16px;
-  border-left: 3px solid var(--verde);
+.versao {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 20px 22px;
+  border: 1.5px solid var(--linha);
+  border-radius: var(--raio-painel);
+  background: var(--papel);
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
 }
 
-.sobre-historia strong {
+.versao-ano {
   color: var(--mata);
-  font-size: var(--t-xl);
+  font-size: var(--t-2xl);
   font-weight: 800;
   font-stretch: 75%;
+  line-height: 1;
 }
 
-.sobre-historia p {
+.versao-titulo {
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.versao-texto {
+  margin-top: 4px;
+  color: var(--tinta-2);
+}
+
+.versao-equipe {
+  width: fit-content;
+  margin-top: 12px;
+  padding: 4px 10px;
+  border-radius: var(--raio-etiqueta);
+  background: var(--nevoa);
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.versao[aria-selected='true'] {
+  border-color: var(--mata);
+  background: var(--mata);
+  color: var(--papel);
+  cursor: default;
+}
+
+.versao[aria-selected='true'] .versao-ano {
+  color: var(--papel);
+}
+
+.versao[aria-selected='true'] .versao-titulo,
+.versao[aria-selected='true'] .versao-texto {
+  color: #cfe0d2;
+}
+
+.versao[aria-selected='true'] .versao-equipe {
+  background: var(--verde);
+  color: var(--papel);
+}
+
+/* A "seta" que liga a aba escolhida ao painel da equipe. */
+.versao[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 36px;
+  bottom: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--mata);
+  transform: rotate(45deg);
+}
+
+.equipe-painel {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1.5px solid var(--linha);
+  border-radius: var(--raio-painel);
+  animation: aparecer var(--suave, 220ms) ease-out;
+}
+
+.equipe-painel h3 {
+  color: var(--mata);
+  font-size: var(--t-lg);
+  font-weight: 800;
+  font-stretch: 80%;
+}
+
+.equipe-painel > p {
+  margin: 4px 0 20px;
   color: var(--tinta-2);
 }
 
@@ -927,9 +1011,6 @@ main:has(> .faixa-lojista:last-child) {
     padding-top: 32px;
   }
 
-  .sobre-historia ol {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
   .equipe {
     grid-template-columns: repeat(3, 1fr);
@@ -939,6 +1020,22 @@ main:has(> .faixa-lojista:last-child) {
 @media (max-width: 520px) {
   .equipe {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .versoes {
+    gap: 10px;
+  }
+
+  .versao {
+    padding: 16px;
+  }
+
+  .versao-texto {
+    display: none; /* no celular a aba fica só com ano, versão e equipe */
+  }
+
+  .equipe-painel {
+    padding: 16px;
   }
 }
 

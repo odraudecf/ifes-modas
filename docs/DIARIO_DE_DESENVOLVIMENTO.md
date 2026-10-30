@@ -262,3 +262,5 @@ Pedido do grupo: hovers e mais coisas clicáveis, para o site "responder" ao usu
 
 **Teste no Chrome:** hover e clique em cada um desses pontos, navegação de cada link novo e console sem erros.
 
+**Sobre: uma equipe por versão.** A seção "Equipe" mostrava os seis alunos do TCC como se fossem a equipe das duas versões. Agora "Versões e equipes" tem duas abas, uma para cada ano: **2024** (versão 1.0, os seis alunos da turma 2022–2024) e **2026** (versão 2.0, Eduardo Castro Fernandes). O ano escolhido fica verde-escuro, com uma seta apontando para a equipe logo abaixo, e cada aba diz quantas pessoas formam aquela equipe. A página abre na versão atual (2026). As abas seguem o padrão acessível (`role="tab"`) e trocam pelas setas do teclado.
+
