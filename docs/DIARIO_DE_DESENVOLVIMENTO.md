@@ -157,6 +157,15 @@ O grupo criou o projeto no Neon e aplicou o Blueprint no Render. Verificação f
 
 **Causa:** no Blueprint, `fromService.property: host` devolve o hostname **interno** da rede privada do Render, não o `.onrender.com`. **Correção:** URLs públicas fixas no `render.yaml`. O `VITE_API_URL` é lido no build, então o front precisa de um novo deploy.
 
+### Deploy automático ligado (30/10)
+
+1. Variáveis corrigidas no Render: CORS passou a liberar `https://ifes-modas.onrender.com` e o JS do front passou a apontar para `https://ifes-modas-api.onrender.com`.
+2. O grupo copiou o **Deploy Hook** de cada serviço do Render e criou os secrets `RENDER_DEPLOY_HOOK_API` e `RENDER_DEPLOY_HOOK_FRONT` no GitHub.
+3. O job de deploy passou a rodar também pelo botão **Run workflow**, para republicar sem commit.
+4. Primeira execução com os secrets: os 4 jobs ficaram verdes e o log mostrou "Deploy da API solicitado." e "Deploy do front solicitado.". Depois do deploy, `/health`, `/api/lojas`, Swagger, 401 sem token, CORS, site e `/lojas` responderam corretamente.
+
+A partir daqui, todo push na `main` com testes verdes publica a API e o front sozinho.
+
 ---
 
 **Falso alarme investigado (Etapa 6):** na primeira subida apareceu `fail: Failed executing DbCommand ... FROM "__EFMigrationsHistory"`. É o EF tentando ler o histórico antes de criar a tabela, num banco vazio; só acontece no primeiro boot. Não exigiu correção.
