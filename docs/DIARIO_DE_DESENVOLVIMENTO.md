@@ -211,3 +211,15 @@ Até aqui, todo push ia direto para a `main`, e a `main` publica em produção. 
 - **CI/CD:** o mesmo workflow roda na `Dev` (testes, lint, Docker) e, se tudo passar, chama os hooks de teste (`*_DEV`). A expressão que escolhe o hook só devolve o hook de produção quando a branch é `main`. Assim, um push na `Dev` nunca publica em produção.
 - **Para ir para produção:** Pull Request da `Dev` para a `main`. O CI roda de novo no PR e o merge dispara o deploy oficial.
 
+**Verificação do ambiente de teste (30/10):** o grupo criou a branch `dev` no Neon, o Blueprint de teste no Render e os secrets `_DEV`. O primeiro workflow na `Dev` publicou API e front de teste, e a verificação com `curl` deu:
+
+| Verificação | Resultado |
+|---|---|
+| `/health`, `/api/lojas`, Swagger | 200 |
+| Rota protegida sem token | 401 |
+| CORS da API de teste | libera só `ifes-modas-dev.onrender.com`, não o site de produção |
+| JS do front de teste | chama `ifes-modas-api-dev.onrender.com` e já tem o layout novo |
+| Item criado no teste (calça 59, R$ 1,23) | aparece no teste e **não** aparece em produção; depois foi apagado |
+| Token do teste usado na API de produção | 401 (chaves JWT diferentes) |
+| Produção | continua com o layout antigo até o merge na `main` |
+
