@@ -51,10 +51,10 @@ export default function Loja() {
   return (
     <>
       <CabecalhoPagina titulo={loja.nome} trilha={[{ rotulo: 'Lojas', para: '/lojas' }]}>
-        <p className="loja-endereco">
+        <a className="loja-endereco" href={linkMapa(endereco)} target="_blank" rel="noopener noreferrer" title="Abrir no Google Maps">
           <MapPin size={18} />
           {endereco.rua}, {endereco.numero}, {endereco.bairro}, {endereco.cidade} ({endereco.uf})
-        </p>
+        </a>
         <div className="loja-acoes">
           <a className="botao" href={linkWhatsApp(loja.telefone, 'Olá! Vi sua loja no Ifes Modas e queria saber sobre os uniformes.')} target="_blank" rel="noopener noreferrer">
             <MessageCircle size={18} />

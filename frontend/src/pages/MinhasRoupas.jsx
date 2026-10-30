@@ -23,12 +23,13 @@ export default function MinhasRoupas() {
 function Catalogo({ inicial }) {
   const location = useLocation()
   const [itens, setItens] = useState(inicial)
-  const [filtro, setFiltro] = useState('todas')
-  const [painel, setPainel] = useState(null) // null | { item } (item null = adicionar)
+  // Vindo da visão geral: a peça clicada já chega filtrada (ou com o "Adicionar" aberto nela).
+  const [filtro, setFiltro] = useState(location.state?.filtro ?? 'todas')
+  const [painel, setPainel] = useState(location.state?.adicionar ? { item: null } : null) // null | { item } (item null = adicionar)
   const [confirmarExclusao, setConfirmarExclusao] = useState(null)
   // Ao abrir "Adicionar" de novo, peça, gênero e preço continuam marcados
   // (o lojista costuma cadastrar a mesma peça no outro gênero logo em seguida).
-  const [ultimoNovo, setUltimoNovo] = useState({ pecaId: 'camisa-padrao', genero: 'Masculino', preco: '' })
+  const [ultimoNovo, setUltimoNovo] = useState({ pecaId: location.state?.adicionar ?? 'camisa-padrao', genero: 'Masculino', preco: '' })
   const [mensagem, setMensagem] = useState(
     location.state?.boasVindas
       ? {
@@ -124,7 +125,8 @@ function Catalogo({ inicial }) {
                 </div>
                 <ul className="linhas-roupa">
                   {daPeca.map((item) => (
-                    <li key={item.id} className="linha-roupa">
+                    // Clicar na linha abre a edição (os botões continuam lá para teclado e leitor de tela).
+                    <li key={item.id} className="linha-roupa" onClick={(e) => { if (!e.target.closest('button')) setPainel({ item }) }}>
                       <span className="linha-roupa-genero">{item.genero}</span>
                       <span className="linha-roupa-tamanho">{item.tamanho}</span>
                       <span className="linha-roupa-preco">{formatarPreco(item.preco)}</span>

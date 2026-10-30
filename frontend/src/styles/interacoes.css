@@ -1,0 +1,323 @@
+/*
+ * Interações: tudo que é clicável responde à ação do usuário.
+ * - Hover (só em aparelhos com mouse: no celular o hover "gruda" depois do toque).
+ * - Clique/toque: o elemento "afunda" um pouco.
+ * - Foco pelo teclado: o contorno verde de base.css continua valendo.
+ * Movimento só como resposta a uma ação; quem pede menos movimento no sistema não vê nada disso (base.css).
+ */
+:root {
+  --rapido: 140ms;
+  --suave: 220ms;
+  --lento: 450ms;
+  --curva: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --sombra-leve: 0 4px 12px rgb(15 58 29 / 0.08);
+  --sombra-media: 0 10px 24px rgb(15 58 29 / 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  -webkit-tap-highlight-color: transparent; /* o "afundar" abaixo já é a resposta ao toque */
+}
+
+/* A busca fica abaixo do topo fixo quando um link "#buscador" leva até ela. */
+#buscador {
+  scroll-margin-top: calc(var(--topo-altura) + 16px);
+}
+
+/* ---------- Transições ---------- */
+a,
+button,
+summary,
+.botao,
+.etiqueta,
+.etiqueta-preco,
+.cartao-loja,
+.selo,
+.passo,
+.passo-numero,
+.pendencia,
+.faixa-doacao,
+.doacao-contato,
+.linha-roupa,
+.tabela tr,
+.campo input,
+.campo select,
+.campo-caixa,
+.busca,
+.inicio-foto-legenda {
+  transition:
+    background-color var(--rapido) var(--curva),
+    border-color var(--rapido) var(--curva),
+    color var(--rapido) var(--curva),
+    text-decoration-color var(--rapido) var(--curva),
+    box-shadow var(--suave) var(--curva),
+    transform var(--suave) var(--curva);
+}
+
+.seta,
+.cartao-loja-seta,
+.marca img,
+.painel-menu nav svg {
+  transition: transform var(--suave) var(--curva), color var(--rapido) var(--curva);
+}
+
+.modelo img,
+.inicio-foto img,
+.faixa-doacao img,
+.doacao-contato img {
+  transition: transform var(--lento) var(--curva);
+}
+
+/* ---------- Clique: o elemento afunda ---------- */
+.botao:active:not(:disabled),
+.etiqueta:active:not(:disabled),
+.etiqueta-preco:active,
+.cartao-loja:active,
+.passo:active,
+.pendencia:active,
+.modelo:active,
+.inicio-foto:active,
+.faixa-doacao:active,
+.doacao-contato:active {
+  transform: scale(0.98);
+  transition-duration: 60ms;
+}
+
+/* ---------- Títulos que são links ---------- */
+.titulo-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.12em;
+}
+
+/* ---------- Coisas que respondem ao mouse ---------- */
+.linha-roupa,
+.tabela .linha-clicavel {
+  cursor: pointer;
+}
+
+.cartao-loja-seta {
+  color: var(--linha-forte);
+}
+
+.celula-acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.celula-acao .seta {
+  color: var(--linha-forte);
+}
+
+.tabela th a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  /* Botões: sobem um pouco e ganham sombra; a seta anda para a frente. */
+  .botao:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgb(15 58 29 / 0.2);
+  }
+
+  .botao.secundario:hover:not(:disabled) {
+    background: var(--nevoa);
+    box-shadow: var(--sombra-leve);
+  }
+
+  .botao.fantasma:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .botao:hover .seta {
+    transform: translateX(3px);
+  }
+
+  /* Etiquetas: ficam verdes antes mesmo de serem marcadas. */
+  .etiqueta:hover:not(:disabled):not([aria-pressed='true']) {
+    border-color: var(--verde-texto);
+    background: var(--folha);
+    transform: translateY(-1px);
+  }
+
+  .etiqueta-preco:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-leve);
+  }
+
+  /* Títulos-link: ganham cor e sublinhado. */
+  .titulo-link:hover {
+    color: var(--verde-texto);
+    text-decoration-color: currentColor;
+  }
+
+  /* Topo */
+  .marca:hover img {
+    transform: rotate(-8deg) scale(1.06);
+  }
+
+  /* Início */
+  .inicio-foto:hover img {
+    transform: scale(1.03);
+  }
+
+  .inicio-foto:hover .inicio-foto-legenda {
+    background: var(--mata);
+    color: var(--papel);
+  }
+
+  .inicio-foto:hover .inicio-foto-legenda svg {
+    transform: translateX(3px);
+  }
+
+  .passo:hover {
+    border-top-color: var(--verde);
+  }
+
+  .passo:hover .passo-numero {
+    transform: translateY(-4px);
+  }
+
+  .passo:hover h3 {
+    color: var(--verde-texto);
+  }
+
+  .modelo:hover img {
+    transform: scale(1.05);
+  }
+
+  .faixa-doacao:hover {
+    background: var(--folha);
+  }
+
+  .faixa-doacao:hover img,
+  .doacao-contato:hover img {
+    transform: scale(1.04) rotate(-1deg);
+  }
+
+  .faixa-doacao:hover .botao {
+    border-color: var(--tinta);
+    box-shadow: var(--sombra-leve);
+  }
+
+  .faixa-doacao:hover .seta,
+  .doacao-contato:hover .seta {
+    transform: translateX(3px);
+  }
+
+  .doacao-contato:hover {
+    background: #134a26;
+  }
+
+  .doacao-contato:hover .botao {
+    background: var(--folha);
+  }
+
+  /* Lojas */
+  .cartao-loja:hover {
+    border-color: var(--verde-texto);
+    box-shadow: var(--sombra-media);
+    transform: translateY(-2px);
+  }
+
+  .cartao-loja:hover strong {
+    text-decoration: none;
+  }
+
+  .cartao-loja:hover .selo {
+    background: var(--verde-texto);
+  }
+
+  .cartao-loja:hover .cartao-loja-seta {
+    color: var(--verde-texto);
+    transform: translateX(4px);
+  }
+
+  /* Página da loja */
+  .loja-endereco:hover {
+    color: var(--verde-texto);
+    text-decoration: underline;
+  }
+
+  /* Doações */
+  .perguntas summary:hover {
+    color: var(--verde-texto);
+  }
+
+  /* Área da loja */
+  .painel-menu nav a:hover svg,
+  .painel-menu nav button:hover svg {
+    transform: translateX(2px);
+  }
+
+  .pendencia:hover {
+    border-color: #d9b45a;
+    box-shadow: var(--sombra-leve);
+    transform: translateY(-1px);
+  }
+
+  .linha-roupa:hover,
+  .tabela .linha-clicavel:hover {
+    background: var(--nevoa);
+  }
+
+  .tabela .linha-clicavel:hover th a {
+    color: var(--verde-texto);
+    text-decoration: underline;
+  }
+
+  .tabela .linha-clicavel:hover .seta {
+    color: var(--verde-texto);
+    transform: translateX(3px);
+  }
+
+  .busca:hover:not(:focus-within),
+  .campo input:hover:not(:focus):not(:disabled),
+  .campo select:hover:not(:focus),
+  .campo-caixa:hover:not(:focus-within) {
+    border-color: var(--tinta-3);
+  }
+}
+
+/* ---------- Respostas que aparecem depois de uma ação ---------- */
+.alerta,
+.consulta-cnpj,
+.barra-salvar-msg {
+  animation: aparecer var(--suave) var(--curva);
+}
+
+.perguntas details[open] p {
+  animation: aparecer var(--suave) var(--curva);
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Etiqueta recém-marcada dá um "pulo" curto. */
+.etiqueta[aria-pressed='true'] {
+  animation: marcar 200ms var(--curva);
+}
+
+@keyframes marcar {
+  50% {
+    transform: scale(1.06);
+  }
+}

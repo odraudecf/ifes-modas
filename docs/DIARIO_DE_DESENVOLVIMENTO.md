@@ -242,3 +242,23 @@ Até aqui, todo push ia direto para a `main`, e a `main` publica em produção. 
 **Teste de mutação:** desligando de propósito a exigência de CNPJ, o teste de produção falhou, como deveria.
 **No navegador:** busca real com o CNPJ público do Banco do Brasil (preencheu nome, telefone e endereço), cadastro completo sem CNPJ no modo teste e CNPJ barrado no modo produção.
 
+---
+
+## Etapa 11 — O site responde às ações
+
+Pedido do grupo: hovers e mais coisas clicáveis, para o site "responder" ao usuário.
+
+- **`styles/interacoes.css`**, carregado por último, junta toda a resposta visual:
+  - **Hover** (só em aparelhos com mouse: no celular o hover "gruda" depois do toque): botões sobem e ganham sombra; etiquetas ficam verdes; cartões de loja sobem, o selo muda de cor e a seta anda; fotos dão um zoom leve.
+  - **Clique/toque:** o elemento "afunda" (`scale(0.98)`), que no celular é a resposta ao dedo.
+  - **Depois de uma ação:** avisos e o resultado da busca de CNPJ aparecem deslizando, e a etiqueta marcada dá um pulo curto.
+  - Quem pede menos movimento no sistema não vê animação nenhuma.
+- **Ficaram clicáveis:**
+  - na página inicial, o título (leva às lojas), a foto (camisa padrão), os três passos do "Como funciona" (o 1º sobe até a busca), a faixa de doação inteira e o título da faixa de lojistas;
+  - o endereço da loja, que abre o Google Maps;
+  - o bloco "Fale com o campus" inteiro, nas Doações;
+  - na área da loja: as pendências inteiras; as linhas do catálogo da visão geral, que abrem Roupas já filtrado na peça (ou o "Adicionar" com a peça marcada, se ela falta); e a linha de cada roupa, que abre a edição.
+- **Link dentro de link não é permitido em HTML:** onde o bloco inteiro virou link, o "botão" de dentro passou a ser só visual (`<span class="botao">`).
+
+**Teste no Chrome:** hover e clique em cada um desses pontos, navegação de cada link novo e console sem erros.
+

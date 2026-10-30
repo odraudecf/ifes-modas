@@ -55,17 +55,20 @@ export default function Doacoes() {
           </section>
         </div>
 
-        <div className="doacao-contato">
-          <img src="/img/card-doacoes.webp" alt="" width="380" height="480" loading="lazy" />
-          <div>
+        {/* O bloco inteiro é o link para o site do campus; o "botão" é só visual. */}
+        <a className="doacao-contato" href={DOACOES_URL} target="_blank" rel="noopener noreferrer">
+          <span className="doacao-contato-foto">
+            <img src="/img/card-doacoes.webp" alt="" width="380" height="480" loading="lazy" />
+          </span>
+          <span>
             <h2>Fale com o campus</h2>
             <p>O contato do programa de doação fica no site oficial do Ifes Campus de Alegre.</p>
-            <a className="botao grande" href={DOACOES_URL} target="_blank" rel="noopener noreferrer">
+            <span className="botao grande">
               Abrir o site do campus
-              <ExternalLink size={18} />
-            </a>
-          </div>
-        </div>
+              <ExternalLink size={18} className="seta" />
+            </span>
+          </span>
+        </a>
 
         <section className="perguntas" aria-labelledby="duvidas">
           <h2 id="duvidas" className="secao-titulo">Dúvidas</h2>

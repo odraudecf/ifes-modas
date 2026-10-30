@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { MapPin, Search, X } from 'lucide-react'
+import { ChevronRight, MapPin, Search, X } from 'lucide-react'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Carregando, Erro, Vazio } from '../components/Estados.jsx'
 import { Opcoes } from '../components/Opcoes.jsx'
@@ -209,6 +209,7 @@ function CartaoLoja({ loja, resumo, peca, tamanho }) {
           {formatarPreco(resumo.menor)}
         </span>
       )}
+      <ChevronRight size={20} className="cartao-loja-seta" />
     </Link>
   )
 }

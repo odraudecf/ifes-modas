@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { CircleAlert } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ChevronRight, CircleAlert } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.js'
 import { Carregando, Erro } from '../components/Estados.jsx'
 import { useApi } from '../lib/useApi.js'
@@ -9,6 +9,7 @@ import { PECAS, agruparCatalogo, compararTamanhos } from '../lib/uniformes.js'
 /** Visão geral da área da loja: o que falta preencher e um resumo do catálogo. */
 export default function Gerenciamento() {
   const { loja } = useAuth()
+  const navigate = useNavigate()
   const roupas = useApi('/api/uniformes/minhas', { auth: true })
   const dados = useApi('/api/lojas/me', { auth: true })
 
@@ -38,9 +39,12 @@ export default function Gerenciamento() {
           <ul>
             {pendencias.map((p) => (
               <li key={p.para}>
-                <CircleAlert size={20} />
-                <p>{p.texto}</p>
-                <Link to={p.para} className="botao pequeno">{p.acao}</Link>
+                {/* A linha inteira leva à correção; o "botão" é só visual. */}
+                <Link to={p.para} className="pendencia">
+                  <CircleAlert size={20} />
+                  <p>{p.texto}</p>
+                  <span className="botao pequeno">{p.acao}</span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -61,10 +65,22 @@ export default function Gerenciamento() {
               const secao = secoes.find((s) => s.peca === peca)
               const tamanhos = secao ? [...new Set(secao.itens.map((u) => u.tamanho))].sort(compararTamanhos) : []
               return (
-                <tr key={peca.id} className={secao ? undefined : 'apagada'}>
-                  <th scope="row">{peca.nome}</th>
+                // Linha clicável: peça cadastrada abre a lista filtrada; peça que falta abre o "Adicionar" com ela marcada.
+                <tr
+                  key={peca.id}
+                  className={`linha-clicavel${secao ? '' : ' apagada'}`}
+                  onClick={() => navigate('/gerenciamento/roupas', { state: secao ? { filtro: peca.id } : { adicionar: peca.id } })}
+                >
+                  <th scope="row">
+                    <Link to="/gerenciamento/roupas" state={secao ? { filtro: peca.id } : { adicionar: peca.id }} onClick={(e) => e.stopPropagation()}>{peca.nome}</Link>
+                  </th>
                   <td>{secao ? tamanhos.join(', ') : 'Não cadastrada'}</td>
-                  <td>{secao ? formatarFaixa(secao.menor, secao.maior) : ''}</td>
+                  <td>
+                    <span className="celula-acao">
+                      {secao ? formatarFaixa(secao.menor, secao.maior) : 'Adicionar'}
+                      <ChevronRight size={16} className="seta" />
+                    </span>
+                  </td>
                 </tr>
               )
             })}

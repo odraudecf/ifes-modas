@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search } from 'lucide-react'
+import { ArrowRight, Search } from 'lucide-react'
 import { Opcoes } from '../components/Opcoes.jsx'
 import { PECAS, TAMANHOS_CALCA_COMUNS, TAMANHOS_LETRA, pecaPorId } from '../lib/uniformes.js'
 
 const OPCOES_PECA = PECAS.map((p) => ({ valor: p.id, rotulo: p.nome, imagem: p.imagem }))
 
+// Cada passo leva aonde ele acontece: o 1º sobe até a busca, os outros abrem a lista de lojas.
 const PASSOS = [
-  { titulo: 'Escolha a peça e o tamanho', texto: 'Camisa padrão, camisa agropecuária, bermuda ou calça, do PP ao XGG.' },
-  { titulo: 'Compare as lojas', texto: 'Veja quem tem a peça, o preço de cada tamanho, o bairro e a cidade.' },
-  { titulo: 'Chame a loja no WhatsApp', texto: 'A mensagem já vai pronta com a peça e o tamanho que você escolheu.' },
+  { titulo: 'Escolha a peça e o tamanho', texto: 'Camisa padrão, camisa agropecuária, bermuda ou calça, do PP ao XGG.', destino: '#buscador' },
+  { titulo: 'Compare as lojas', texto: 'Veja quem tem a peça, o preço de cada tamanho, o bairro e a cidade.', destino: '/lojas' },
+  { titulo: 'Chame a loja no WhatsApp', texto: 'A mensagem já vai pronta com a peça e o tamanho que você escolheu.', destino: '/lojas' },
 ]
 
 export default function Inicio() {
@@ -36,10 +37,10 @@ export default function Inicio() {
       <section className="inicio-topo">
         <div className="container inicio-topo-grade">
           <div className="inicio-chamada">
-            <h1>Ache o uniforme do Ifes Alegre no seu tamanho.</h1>
+            <h1><Link to="/lojas" className="titulo-link">Ache o uniforme do Ifes Alegre no seu tamanho.</Link></h1>
             <p className="inicio-lead">Veja quais lojas vendem cada peça, compare os preços e chame a loja no WhatsApp.</p>
 
-            <form className="buscador" onSubmit={buscar} aria-label="Buscar uniforme">
+            <form id="buscador" className="buscador" onSubmit={buscar} aria-label="Buscar uniforme">
               <Opcoes rotulo="Peça" opcoes={OPCOES_PECA} valor={peca} alterar={trocarPeca} />
               <Opcoes
                 rotulo={pecaPorId(peca).tipo === 'Calca' ? 'Numeração (opcional)' : 'Tamanho (opcional)'}
@@ -55,10 +56,10 @@ export default function Inicio() {
             </form>
           </div>
 
-          <figure className="inicio-foto">
+          <Link to="/lojas?peca=camisa-padrao" className="inicio-foto">
             <img src="/img/hero-campus.webp" alt="Aluno com a camisa padrão do Ifes Campus de Alegre" width="1440" height="717" fetchPriority="high" />
-            <figcaption>Ifes Campus de Alegre, ES</figcaption>
-          </figure>
+            <span className="inicio-foto-legenda">Ver quem vende a camisa padrão <ArrowRight size={16} /></span>
+          </Link>
         </div>
       </section>
 
@@ -67,9 +68,11 @@ export default function Inicio() {
         <ol className="passos">
           {PASSOS.map((p, i) => (
             <li key={p.titulo}>
-              <span className="passo-numero" aria-hidden="true">{i + 1}</span>
-              <h3>{p.titulo}</h3>
-              <p>{p.texto}</p>
+              {p.destino.startsWith('#') ? (
+                <a href={p.destino} className="passo"><Passo numero={i + 1} {...p} /></a>
+              ) : (
+                <Link to={p.destino} className="passo"><Passo numero={i + 1} {...p} /></Link>
+              )}
             </li>
           ))}
         </ol>
@@ -93,34 +96,47 @@ export default function Inicio() {
             </span>
           </Link>
           <div className="modelos-texto">
-            <p>Bermudas e calças são iguais para todos os cursos. Use a busca acima para ver tamanhos e preços de cada peça.</p>
+            <p>Bermudas e calças são iguais para todos os cursos. <a href="#buscador">Use a busca</a> para ver tamanhos e preços de cada peça.</p>
           </div>
         </div>
       </section>
 
       <section className="secao container" aria-labelledby="doacao">
-        <div className="faixa-doacao">
-          <img src="/img/card-doacoes.webp" alt="Aluno segurando uniformes dobrados" width="380" height="480" loading="lazy" />
-          <div>
+        {/* A faixa inteira é o link; o "botão" é só visual (link dentro de link não é permitido). */}
+        <Link to="/doacoes" className="faixa-doacao">
+          <span className="faixa-doacao-foto">
+            <img src="/img/card-doacoes.webp" alt="" width="380" height="480" loading="lazy" />
+          </span>
+          <span className="faixa-doacao-texto">
             <h2 id="doacao">O uniforme não serve mais? Ele pode vestir outro aluno.</h2>
             <p>O campus recebe uniformes usados e repassa para quem precisa. Veja como doar ou pedir uma peça.</p>
-            <Link to="/doacoes" className="botao secundario">Saber como doar ou receber</Link>
-          </div>
-        </div>
+            <span className="botao secundario">Saber como doar ou receber <ArrowRight size={18} className="seta" /></span>
+          </span>
+        </Link>
       </section>
 
       <section className="faixa-lojista" aria-labelledby="lojista">
         <div className="container faixa-lojista-grade">
           <div>
-            <h2 id="lojista">Sua loja vende uniforme do Ifes?</h2>
+            <h2 id="lojista"><Link to="/cadastro" className="titulo-link">Sua loja vende uniforme do Ifes?</Link></h2>
             <p>Cadastre a loja de graça, informe os tamanhos e preços e receba os alunos direto no WhatsApp.</p>
           </div>
           <div className="faixa-lojista-acoes">
-            <Link to="/cadastro" className="botao grande">Cadastrar minha loja</Link>
+            <Link to="/cadastro" className="botao grande">Cadastrar minha loja <ArrowRight size={18} className="seta" /></Link>
             <Link to="/login" className="botao secundario grande">Já tenho cadastro</Link>
           </div>
         </div>
       </section>
+    </>
+  )
+}
+
+function Passo({ numero, titulo, texto }) {
+  return (
+    <>
+      <span className="passo-numero" aria-hidden="true">{numero}</span>
+      <h3>{titulo}</h3>
+      <p>{texto}</p>
     </>
   )
 }

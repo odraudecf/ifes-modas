@@ -51,6 +51,7 @@
 }
 
 .inicio-foto {
+  display: block;
   position: relative;
   min-height: 420px;
   margin: 0;
@@ -68,7 +69,11 @@
   object-position: 20% 25%;
 }
 
-.inicio-foto figcaption {
+.inicio-foto-legenda {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tinta);
   position: absolute;
   left: 16px;
   bottom: 16px;
@@ -88,9 +93,13 @@
   list-style: none;
 }
 
-.passos li {
+.passo {
+  display: block;
+  height: 100%;
   padding-top: 16px;
   border-top: 2px solid var(--mata);
+  color: inherit;
+  text-decoration: none;
 }
 
 .passo-numero {
@@ -162,6 +171,8 @@
 }
 
 .faixa-doacao {
+  color: inherit;
+  text-decoration: none;
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 40px;
@@ -171,10 +182,19 @@
   background: var(--nevoa);
 }
 
+.faixa-doacao-foto {
+  display: block;
+  border-radius: var(--raio-painel);
+  overflow: hidden;
+}
+
 .faixa-doacao img {
   aspect-ratio: 4 / 5;
-  border-radius: var(--raio-painel);
   object-fit: cover;
+}
+
+.faixa-doacao-texto {
+  display: block;
 }
 
 .faixa-doacao h2 {
@@ -273,7 +293,7 @@ main:has(> .faixa-lojista:last-child) {
     padding: 20px;
   }
 
-  .faixa-doacao img {
+  .faixa-doacao-foto {
     max-width: 160px;
   }
 
@@ -331,7 +351,7 @@ main:has(> .faixa-lojista:last-child) {
 
 .cartao-loja {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) auto;
+  grid-template-columns: 52px minmax(0, 1fr) auto auto;
   gap: 16px;
   align-items: center;
   padding: 16px;
@@ -444,8 +464,13 @@ main:has(> .faixa-lojista:last-child) {
 
 @media (max-width: 520px) {
   .cartao-loja {
-    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-columns: 44px minmax(0, 1fr) auto;
     gap: 12px;
+  }
+
+  .cartao-loja-seta {
+    grid-column: 3;
+    grid-row: 1 / span 2;
   }
 
   .selo {
@@ -462,6 +487,8 @@ main:has(> .faixa-lojista:last-child) {
 
 /* ================= Página da loja ================= */
 .loja-endereco {
+  width: fit-content;
+  text-decoration: none;
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -671,6 +698,7 @@ main:has(> .faixa-lojista:last-child) {
 }
 
 .doacao-contato {
+  text-decoration: none;
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
   gap: 32px;
@@ -682,10 +710,20 @@ main:has(> .faixa-lojista:last-child) {
   color: #dcebdf;
 }
 
+.doacao-contato-foto {
+  display: block;
+  border-radius: var(--raio);
+  overflow: hidden;
+}
+
 .doacao-contato img {
   aspect-ratio: 4 / 5;
-  border-radius: var(--raio);
   object-fit: cover;
+}
+
+.doacao-contato h2,
+.doacao-contato p {
+  display: block;
 }
 
 .doacao-contato h2 {
@@ -766,7 +804,7 @@ main:has(> .faixa-lojista:last-child) {
     padding: 20px;
   }
 
-  .doacao-contato img {
+  .doacao-contato-foto {
     max-width: 150px;
   }
 }
@@ -1204,7 +1242,9 @@ main:has(> .faixa-lojista:last-child) {
   list-style: none;
 }
 
-.pendencias li {
+.pendencia {
+  color: var(--tinta);
+  text-decoration: none;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1215,12 +1255,12 @@ main:has(> .faixa-lojista:last-child) {
   background: #fff8e6;
 }
 
-.pendencias li svg {
+.pendencia svg {
   flex: none;
   color: #9a6400;
 }
 
-.pendencias li p {
+.pendencia p {
   flex: 1 1 240px;
 }
 
