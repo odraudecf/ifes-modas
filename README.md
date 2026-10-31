@@ -134,8 +134,3 @@ React 19 + Vite 8 + React Router, na pasta `frontend/`, publicado como Static Si
 - **O que aprendi:** teste automático não substitui conferir o sistema no ar (o erro do CORS passou por todos os testes); um teste só prova algo se falhar quando a regra é quebrada (por isso fizemos testes de mutação); a autorização tem que estar na API, não só na tela; e uma resposta da IA precisa ser conferida, inclusive os dados "de exemplo" que ela cria (os CNPJs "fictícios" eram reais).
 
 Detalhes de cada etapa em [`docs/DIARIO_DE_DESENVOLVIMENTO.md`](docs/DIARIO_DE_DESENVOLVIMENTO.md).
-
-## Equipe
-
-- **Versão 2.0 (2026):** Eduardo Castro Fernandes.
-- **TCC original (2024), Ifes Campus de Alegre, turma de informática 2022–2024:** Davi Rodrigues Cunha, Eduardo Borges Cordeiro, Eduardo Castro Fernandes, Pedro Falleiro Mendes, Pedro Silva e Souza e Rafael José Abdalla.
