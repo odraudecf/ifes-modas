@@ -13,7 +13,7 @@ Os itens avaliados são: slides, tempo, demonstração ao vivo, caminho no códi
 | 5 | Antes × depois | Tabela do README | 1:00 |
 | 6 | **Demo ao vivo** | Ver roteiro abaixo | 4:00 |
 | 7 | **Caminho no código** | Exclusão de um uniforme, do clique ao `DELETE` (`ARQUITETURA.md`) | 2:00 |
-| 8 | Testes | 90 testes; `WebApplicationFactory`; **teste de mutação** ao vivo | 1:30 |
+| 8 | Testes | 91 testes; `WebApplicationFactory`; **teste de mutação** ao vivo | 1:30 |
 | 9 | CI/CD | Diagrama push → Actions → Render; mostrar um run verde | 1:00 |
 | 10 | **IA: teste e erro** | Como trabalhamos + 3 erros da IA (CNPJ de empresa real, região do banco, mensagens em inglês) | 1:30 |
 | 11 | Fechamento | O que aprendemos; próximos passos | 0:30 |

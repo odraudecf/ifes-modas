@@ -26,6 +26,9 @@ public class ApiFactory : WebApplicationFactory<Program>
     public string CorsOrigins { get; init; } = "http://localhost:5173";
     public bool ExigirCnpj { get; init; } = true;
 
+    /// <summary>Liga os dados de demonstração (lojas do seed e a conta "corretor"). Desligado por padrão.</summary>
+    public bool SeedDemo { get; init; }
+
     /// <summary>
     /// Respostas falsas das APIs de CNPJ (BrasilAPI, CNPJá, ReceitaWS): os testes nunca acessam a internet.
     /// Por padrão, todas respondem 404.
@@ -37,7 +40,7 @@ public class ApiFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Default", "Host=nao-usado");
         builder.UseSetting("Jwt:Key", "chave-de-teste-com-mais-de-32-caracteres!!");
-        builder.UseSetting("Seed:Enabled", "false");
+        builder.UseSetting("Seed:Enabled", SeedDemo ? "true" : "false");
         builder.UseSetting("RateLimit:AuthPorMinuto", LimiteAuthPorMinuto.ToString());
         builder.UseSetting("Cors:Origins", CorsOrigins);
         builder.UseSetting("Cadastro:ExigirCnpj", ExigirCnpj.ToString());
