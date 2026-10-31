@@ -1,5 +1,5 @@
 # Ifes Modas API
-**Nicho:** _(preencher exatamente como na planilha)_ · **Aluno:** Eduardo Castro Fernandes (@odraudecf)
+**Nicho:** IFES MODAS - Site de Direcionamento e Compra de Uniformes Escolares · **Aluno:** Eduardo Castro Fernandes (@odraudecf)
 **API no ar:** https://ifes-modas-api.onrender.com/swagger
 **Saúde e versão:** https://ifes-modas-api.onrender.com/health · _(a rota `/api/versao` ainda não existe)_
 **Front-end:** https://ifes-modas.onrender.com
