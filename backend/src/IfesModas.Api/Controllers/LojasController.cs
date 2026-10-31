@@ -1,3 +1,4 @@
+using IfesModas.Api.Domain;
 using IfesModas.Api.Dtos;
 using IfesModas.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,7 @@ public class LojasController(LojaService lojas) : ControllerBase
         await lojas.ObterDetalheAsync(id, ct);
 
     /// <summary>Dados da loja logada.</summary>
-    [Authorize]
+    [Authorize(Policy = Politicas.Loja)]
     [HttpGet("me")]
     [ProducesResponseType<LojaDetalheDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -35,7 +36,7 @@ public class LojasController(LojaService lojas) : ControllerBase
         await lojas.ObterDetalheAsync(User.LojaId(), ct);
 
     /// <summary>Altera os dados da loja logada (nome, contato, redes sociais e endereço).</summary>
-    [Authorize]
+    [Authorize(Policy = Politicas.Loja)]
     [HttpPut("me")]
     [ProducesResponseType<LojaDetalheDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]

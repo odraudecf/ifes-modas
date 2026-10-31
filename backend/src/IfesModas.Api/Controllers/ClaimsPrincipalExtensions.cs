@@ -9,4 +9,7 @@ public static class ClaimsPrincipalExtensions
     public static int LojaId(this ClaimsPrincipal user) =>
         int.Parse(user.FindFirstValue(JwtRegisteredClaimNames.Sub)
                   ?? throw new InvalidOperationException("Token sem o claim 'sub'."));
+
+    /// <summary>Id do administrador logado (mesmo claim "sub"; a política de autorização garante que é um admin).</summary>
+    public static int AdminId(this ClaimsPrincipal user) => user.LojaId();
 }

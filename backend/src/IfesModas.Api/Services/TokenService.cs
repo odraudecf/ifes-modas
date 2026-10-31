@@ -31,8 +31,37 @@ public class TokenService(IOptions<JwtOptions> options, TimeProvider time)
             [
                 new Claim(JwtRegisteredClaimNames.Sub, loja.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Name, loja.Nome),
-                new Claim("cnpj", loja.Cnpj)
+                new Claim("cnpj", loja.Cnpj),
+                new Claim("role", Papeis.Loja)
             ]),
+            SigningCredentials = new SigningCredentials(ChaveDeAssinatura(_opt.Key), SecurityAlgorithms.HmacSha256)
+        };
+
+        return (new JsonWebTokenHandler().CreateToken(descriptor), expiraEm);
+    }
+
+    /// <summary>Token do administrador. Com a troca de acesso pendente, leva o claim que bloqueia o resto da administração.</summary>
+    public (string Token, DateTime ExpiraEm) GerarAdmin(Administrador admin)
+    {
+        var agora = time.GetUtcNow().UtcDateTime;
+        var expiraEm = agora.AddHours(_opt.ExpiracaoHoras);
+
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, admin.Id.ToString()),
+            new(JwtRegisteredClaimNames.Name, admin.Usuario),
+            new("role", Papeis.Admin)
+        };
+        if (admin.DeveTrocarAcesso) claims.Add(new Claim(Papeis.ClaimTrocarAcesso, "true"));
+
+        var descriptor = new SecurityTokenDescriptor
+        {
+            Issuer = _opt.Issuer,
+            Audience = _opt.Audience,
+            IssuedAt = agora,
+            NotBefore = agora,
+            Expires = expiraEm,
+            Subject = new ClaimsIdentity(claims),
             SigningCredentials = new SigningCredentials(ChaveDeAssinatura(_opt.Key), SecurityAlgorithms.HmacSha256)
         };
 

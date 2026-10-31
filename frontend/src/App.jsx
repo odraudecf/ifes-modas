@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
-import { RotaProtegida } from './auth/RotaProtegida.jsx'
+import { RotaAdmin, RotaProtegida } from './auth/RotaProtegida.jsx'
 import { Topo } from './components/Topo.jsx'
 import { Rodape } from './components/Rodape.jsx'
 import { PainelLayout } from './components/PainelLayout.jsx'
+import { AdminLayout } from './components/AdminLayout.jsx'
 import { Vazio } from './components/Estados.jsx'
 import Inicio from './pages/Inicio.jsx'
 import Lojas from './pages/Lojas.jsx'
@@ -15,6 +16,12 @@ import Cadastro from './pages/Cadastro.jsx'
 import Gerenciamento from './pages/Gerenciamento.jsx'
 import MinhasRoupas from './pages/MinhasRoupas.jsx'
 import EditarLoja from './pages/EditarLoja.jsx'
+import Painel from './pages/admin/Painel.jsx'
+import AdminLojas from './pages/admin/AdminLojas.jsx'
+import AdminLoja from './pages/admin/AdminLoja.jsx'
+import AdminUsuarios from './pages/admin/AdminUsuarios.jsx'
+import AdminNovoUsuario from './pages/admin/AdminNovoUsuario.jsx'
+import AdminConta from './pages/admin/AdminConta.jsx'
 
 const TITULOS = {
   '/': 'Ifes Modas',
@@ -26,6 +33,11 @@ const TITULOS = {
   '/gerenciamento': 'Visão geral | Ifes Modas',
   '/gerenciamento/roupas': 'Roupas | Ifes Modas',
   '/gerenciamento/loja': 'Dados da loja | Ifes Modas',
+  '/admin': 'Painel | Administração | Ifes Modas',
+  '/admin/lojas': 'Lojas | Administração | Ifes Modas',
+  '/admin/usuarios': 'Usuários | Administração | Ifes Modas',
+  '/admin/usuarios/novo': 'Criar usuário | Administração | Ifes Modas',
+  '/admin/conta': 'Minha conta | Administração | Ifes Modas',
 }
 
 export default function App() {
@@ -34,7 +46,7 @@ export default function App() {
   // Ao trocar de página: volta ao topo e atualiza o título da aba.
   useEffect(() => {
     window.scrollTo(0, 0)
-    document.title = TITULOS[pathname] ?? 'Ifes Modas'
+    document.title = TITULOS[pathname] ?? (pathname.startsWith('/admin/lojas/') ? 'Loja | Administração | Ifes Modas' : 'Ifes Modas')
   }, [pathname])
 
   return (
@@ -54,6 +66,14 @@ export default function App() {
             <Route index element={<Gerenciamento />} />
             <Route path="roupas" element={<MinhasRoupas />} />
             <Route path="loja" element={<EditarLoja />} />
+          </Route>
+          <Route path="/admin" element={<RotaAdmin><AdminLayout /></RotaAdmin>}>
+            <Route index element={<Painel />} />
+            <Route path="lojas" element={<AdminLojas />} />
+            <Route path="lojas/:id" element={<AdminLoja />} />
+            <Route path="usuarios" element={<AdminUsuarios />} />
+            <Route path="usuarios/novo" element={<AdminNovoUsuario />} />
+            <Route path="conta" element={<AdminConta />} />
           </Route>
           <Route
             path="*"

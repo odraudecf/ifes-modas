@@ -13,10 +13,18 @@ public record CadastroRequest(
     [Required(ErrorMessage = "Confirme a senha.")] string ConfirmarSenha,
     [Required] EnderecoDto Endereco);
 
-/// <summary>Login com CNPJ e senha (RF02).</summary>
+/// <summary>Login com CNPJ e senha (RF02). O administrador usa o mesmo campo com o nome de usuário dele.</summary>
+/// <param name="Cnpj">CNPJ da loja (com ou sem pontuação) ou usuário do administrador.</param>
+/// <param name="Senha">Senha.</param>
 public record LoginRequest(
-    [Required(ErrorMessage = "Informe o CNPJ.")] string Cnpj,
+    [Required(ErrorMessage = "Informe o CNPJ ou o usuário.")] string Cnpj,
     [Required(ErrorMessage = "Informe a senha.")] string Senha);
 
-/// <summary>Resposta de login/cadastro: o token JWT e dados básicos da loja logada.</summary>
-public record AuthResponse(string Token, DateTime ExpiraEm, LojaResumoDto Loja);
+/// <summary>
+/// Resposta de login/cadastro: o token JWT e quem entrou. <c>Papel</c> é "loja" ou "admin";
+/// conforme o papel, vem preenchido <c>Loja</c> ou <c>Admin</c>.
+/// </summary>
+public record AuthResponse(string Token, DateTime ExpiraEm, LojaResumoDto? Loja, string Papel = "loja", AdminResumoDto? Admin = null);
+
+/// <summary>Administrador logado. <c>DeveTrocarAcesso</c> = true no primeiro acesso.</summary>
+public record AdminResumoDto(int Id, string Usuario, bool DeveTrocarAcesso);

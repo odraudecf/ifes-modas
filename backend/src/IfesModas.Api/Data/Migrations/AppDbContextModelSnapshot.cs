@@ -22,6 +22,45 @@ namespace IfesModas.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("IfesModas.Api.Domain.Administrador", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criado_em");
+
+                    b.Property<bool>("DeveTrocarAcesso")
+                        .HasColumnType("boolean")
+                        .HasColumnName("deve_trocar_acesso");
+
+                    b.Property<string>("SenhaHash")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("senha_hash");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("usuario");
+
+                    b.HasKey("Id")
+                        .HasName("pk_administradores");
+
+                    b.HasIndex("Usuario")
+                        .IsUnique()
+                        .HasDatabaseName("ix_administradores_usuario");
+
+                    b.ToTable("administradores", (string)null);
+                });
+
             modelBuilder.Entity("IfesModas.Api.Domain.Endereco", b =>
                 {
                     b.Property<int>("Id")

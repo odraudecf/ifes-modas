@@ -119,9 +119,9 @@ public class CadastroSemCnpjTests
 
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
         var auth = await resp.Content.ReadFromJsonAsync<AuthResponse>(Json);
-        Assert.True(Cnpj.EhValido(auth!.Loja.Cnpj));
+        Assert.True(Cnpj.EhValido(auth!.Loja!.Cnpj));
 
-        var login = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest(auth.Loja.Cnpj, "senha123"), Json);
+        var login = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest(auth.Loja!.Cnpj, "senha123"), Json);
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         Assert.False((await client.GetFromJsonAsync<RegrasCadastroDto>("/api/auth/regras", Json))!.ExigirCnpj);
     }

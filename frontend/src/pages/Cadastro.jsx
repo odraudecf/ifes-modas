@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { Check, CircleAlert, LoaderCircle } from 'lucide-react'
-import { api } from '../api/client.js'
+import { Check, LoaderCircle } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.js'
 import { Campo, CampoSenha } from '../components/Campo.jsx'
 import { CamposContato, CamposEndereco, CamposRedes } from '../components/CamposLoja.jsx'
 import { MolduraAcesso } from '../components/MolduraAcesso.jsx'
+import { ResultadoConsulta } from '../components/ResultadoConsulta.jsx'
 import { cnpjValido, normalizarCnpj } from '../lib/cnpj.js'
 import { formatarCnpj } from '../lib/format.js'
 import { lojaVazia } from '../lib/loja.js'
 import { useApi } from '../lib/useApi.js'
+import { preencherComCnpj, useConsultaCnpj } from '../lib/useConsultaCnpj.js'
 
 const ETAPAS = ['Loja', 'Endereço', 'Acesso']
 const TITULOS = ['Sobre a loja', 'Onde fica a loja', 'Crie sua senha']
@@ -63,13 +64,15 @@ export default function Cadastro() {
   const [etapa, setEtapa] = useState(0)
   const [cnpj, setCnpj] = useState('')
   const [semCnpj, setSemCnpj] = useState(false)
-  const [consulta, setConsulta] = useState({ estado: 'parada' }) // parada | buscando | achou | falhou
   const [loja, setLoja] = useState(lojaVazia)
   const [senha, setSenha] = useState({ senha: '', confirmarSenha: '' })
   const [erro, setErro] = useState(null)
   const [erros, setErros] = useState({})
   const [enviando, setEnviando] = useState(false)
-  const ultimaConsulta = useRef('')
+  const { consulta, buscando, aoMudar: aoMudarCnpj, limpar: limparConsulta } = useConsultaCnpj((dados) => {
+    setLoja((l) => preencherComCnpj(l, dados))
+    setErros({})
+  })
   const tituloRef = useRef(null)
   const etapaAnterior = useRef(etapa)
 
@@ -81,49 +84,17 @@ export default function Cadastro() {
 
   if (logada && !enviando) return <Navigate to="/gerenciamento" replace />
 
-  async function consultarCnpj(c) {
-    ultimaConsulta.current = c
-    setConsulta({ estado: 'buscando' })
-    try {
-      const dados = await api(`/api/cnpj/${c}`)
-      if (ultimaConsulta.current !== c) return // o CNPJ mudou enquanto a resposta vinha
-      setLoja((l) => ({
-        ...l,
-        nome: dados.nome,
-        telefone: dados.telefone ?? l.telefone,
-        endereco: {
-          rua: dados.endereco.rua || l.endereco.rua,
-          numero: dados.endereco.numero || l.endereco.numero,
-          bairro: dados.endereco.bairro || l.endereco.bairro,
-          cidade: dados.endereco.cidade || l.endereco.cidade,
-          uf: dados.endereco.uf || l.endereco.uf,
-        },
-      }))
-      setErros({})
-      setConsulta({ estado: 'achou', dados })
-    } catch (err) {
-      if (ultimaConsulta.current !== c) return
-      setConsulta({ estado: 'falhou', mensagem: err.message })
-    }
-  }
-
   function mudarCnpj(e) {
     const c = normalizarCnpj(e.target.value)
     setCnpj(c)
     if (erros.cnpj) setErros(semErroDeCnpj)
-    if (c.length < 14) {
-      ultimaConsulta.current = ''
-      setConsulta({ estado: 'parada' })
-    } else if (cnpjValido(c) && c !== ultimaConsulta.current) {
-      consultarCnpj(c)
-    }
+    aoMudarCnpj(c)
   }
 
   function alternarSemCnpj(e) {
     setSemCnpj(e.target.checked)
     setCnpj('')
-    ultimaConsulta.current = ''
-    setConsulta({ estado: 'parada' })
+    limparConsulta()
     setErros(semErroDeCnpj)
   }
 
@@ -159,7 +130,6 @@ export default function Cadastro() {
   }
 
   const ultima = etapa === ETAPAS.length - 1
-  const buscando = consulta.estado === 'buscando'
 
   return (
     <MolduraAcesso>
@@ -247,36 +217,5 @@ export default function Cadastro() {
         <p className="formulario-rodape">Já tem cadastro? <Link to="/login">Entrar</Link></p>
       </form>
     </MolduraAcesso>
-  )
-}
-
-/** O que a busca do CNPJ encontrou (ou por que não encontrou). */
-function ResultadoConsulta({ consulta }) {
-  if (consulta.estado === 'buscando') {
-    return <p className="consulta-cnpj" role="status">Buscando os dados na Receita Federal…</p>
-  }
-  if (consulta.estado === 'falhou') {
-    return (
-      <p className="consulta-cnpj aviso-leve" role="status">
-        <CircleAlert size={18} />
-        <span>{consulta.mensagem}</span>
-      </p>
-    )
-  }
-  if (consulta.estado !== 'achou') return null
-
-  const { dados } = consulta
-  return (
-    <div className={`consulta-cnpj achou${dados.ativa ? '' : ' inativa'}`} role="status">
-      {dados.ativa ? <Check size={18} /> : <CircleAlert size={18} />}
-      <div>
-        <strong>{dados.razaoSocial}</strong>
-        <span>
-          {dados.ativa
-            ? 'Preenchemos nome, telefone e endereço com os dados da Receita. Confira antes de continuar.'
-            : `Situação na Receita: ${dados.situacao}. Confira se o CNPJ está certo.`}
-        </span>
-      </div>
-    </div>
   )
 }

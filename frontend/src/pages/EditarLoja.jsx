@@ -11,7 +11,13 @@ export default function EditarLoja() {
 
   if (carregando) return <Carregando />
   if (erro) return <Erro mensagem={erro.message} tentarDeNovo={recarregar} />
-  return <Formulario inicial={dados} />
+  return <PaginaDaLoja inicial={dados} />
+}
+
+/** A loja editando os próprios dados: depois de salvar, o nome no menu também muda. */
+function PaginaDaLoja({ inicial }) {
+  const { renomear } = useAuth()
+  return <FormularioLoja inicial={inicial} aoSalvar={(atualizada) => renomear(atualizada.nome)} />
 }
 
 const BLOCOS = [
@@ -20,8 +26,11 @@ const BLOCOS = [
   { titulo: 'Redes sociais', texto: 'Aparecem como botões na sua página.', Campos: CamposRedes },
 ]
 
-function Formulario({ inicial }) {
-  const { renomear } = useAuth()
+/**
+ * Formulário dos dados da loja. A loja grava em /api/lojas/me; o admin passa a rota da loja que está editando.
+ * `embutido` = dentro de outra página (admin): título menor.
+ */
+export function FormularioLoja({ inicial, salvarEm = '/api/lojas/me', aoSalvar, embutido = false }) {
   const [loja, setLoja] = useState({
     nome: inicial.nome,
     telefone: inicial.telefone,
@@ -45,8 +54,8 @@ function Formulario({ inicial }) {
     setMensagem(null)
     setEnviando(true)
     try {
-      const atualizada = await api('/api/lojas/me', { method: 'PUT', body: loja, auth: true })
-      renomear(atualizada.nome)
+      const atualizada = await api(salvarEm, { method: 'PUT', body: loja, auth: true })
+      aoSalvar?.(atualizada)
       setMensagem({ tipo: 'sucesso', texto: 'Alterações salvas.' })
     } catch (err) {
       setErros(err.campos ?? {})
@@ -58,9 +67,9 @@ function Formulario({ inicial }) {
 
   return (
     <form onSubmit={salvar} noValidate>
-      <div className="painel-cabeca">
-        <h1>Dados da loja</h1>
-        <p>O CNPJ não pode ser alterado.</p>
+      <div className={`painel-cabeca${embutido ? ' embutido' : ''}`}>
+        {embutido ? <h2 className="sr-only">Dados da loja</h2> : <h1>Dados da loja</h1>}
+        <p>O CNPJ {inicial.cnpj} não pode ser alterado: ele é o login da loja.</p>
       </div>
 
       {BLOCOS.map(({ titulo, texto, Campos }) => (

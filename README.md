@@ -17,6 +17,8 @@ Vitrine das lojas que vendem os **uniformes do Ifes Campus de Alegre**. O aluno 
 
 **Login de demonstração:** CNPJ `20.240.101/0001-47`, senha `ifes2024` (loja fictícia "Malharia Caparaó").
 
+**Administração:** o admin entra pela mesma tela ("Área da loja"), com um **usuário** no lugar do CNPJ. O primeiro acesso é `Admin` / `123`, e a troca de usuário e senha é **obrigatória** logo em seguida: até trocar, a API recusa o resto da administração.
+
 ---
 
 ## Stack
@@ -69,6 +71,15 @@ As rotas de consulta são **públicas** (funcionam sem token). As de gerenciamen
 | POST | `/api/auth/login` | — | Login com CNPJ e senha |
 | GET | `/api/auth/regras` | — | Regras do cadastro neste ambiente (`exigirCnpj`) |
 | GET | `/api/cnpj/{cnpj}` | — | Dados do CNPJ na Receita (BrasilAPI → CNPJá → ReceitaWS) para preencher o cadastro |
+| GET | `/api/admin/painel` | admin | Números do painel: lojas por cidade, itens por peça e gênero, tamanhos, preços |
+| GET | `/api/admin/lojas?busca=` | admin | Lojas, com busca por nome, cidade ou CNPJ |
+| GET · PUT | `/api/admin/lojas/{id}` | admin | Ver e alterar qualquer loja |
+| POST · PUT · DELETE | `/api/admin/lojas/{id}/uniformes[/{uniformeId}]` | admin | Catálogo de qualquer loja |
+| GET | `/api/admin/usuarios` | admin | Administradores e lojas |
+| POST | `/api/admin/usuarios/admins` · `/lojas` | admin | Cria um administrador (409 se o usuário já existe) ou uma loja |
+| GET · PUT | `/api/admin/conta` | admin* | Troca usuário e senha do próprio admin (*liberada mesmo com a troca pendente) |
+
+**Papéis:** o JWT leva `role` = `loja` ou `admin`. As rotas da loja exigem o papel `loja`, e as de administração exigem `admin` **sem troca de acesso pendente**: um token de admin não serve nas rotas da loja, e vice-versa (os ids das duas tabelas se repetem, por isso a separação é obrigatória).
 | GET | `/api/lojas?uf=ES` | — | Lojas agrupadas por estado e cidade (filtro opcional) |
 | GET | `/api/lojas/{id}` | — | Dados, endereço, contatos e catálogo da loja |
 | GET | `/api/lojas/me` | ✔ | Dados da loja logada |
@@ -114,7 +125,7 @@ As migrations e os dados de demonstração são aplicados sozinhos quando a API 
 **Testes**
 
 ```bash
-cd backend && dotnet test        # 80 testes (unitários + integração)
+cd backend && dotnet test        # 90 testes (unitários + integração)
 cd frontend && npm run lint && npm run build
 ```
 
@@ -133,7 +144,7 @@ Regra que muda por ambiente: em produção o **CNPJ é obrigatório** no cadastr
 
 ```
 push na main ─► GitHub Actions
-                ├─ API: build + 80 testes xUnit
+                ├─ API: build + 90 testes xUnit
                 ├─ Front: lint + build
                 └─ Docker: build da imagem
                         │ todos verdes?
@@ -176,7 +187,7 @@ docker-compose.yml        ambiente local
 
 ## Uso de IA
 
-O desenvolvimento usou o **Claude Code** (Anthropic) para análise do sistema antigo, planejamento, geração de código, testes, infraestrutura e documentação. Todo o código foi revisado, testado (80 testes, mais testes de mutação) e verificado manualmente com Postgres real e no navegador.
+O desenvolvimento usou o **Claude Code** (Anthropic) para análise do sistema antigo, planejamento, geração de código, testes, infraestrutura e documentação. Todo o código foi revisado, testado (90 testes, mais testes de mutação) e verificado manualmente com Postgres real e no navegador.
 
 O registro completo, com a linha do tempo, os **erros que a IA cometeu e como os pegamos**, está em [`docs/REGISTRO_IA.md`](docs/REGISTRO_IA.md). As decisões técnicas, etapa por etapa, estão em [`docs/DIARIO_DE_DESENVOLVIMENTO.md`](docs/DIARIO_DE_DESENVOLVIMENTO.md).
 

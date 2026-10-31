@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Loja> Lojas => Set<Loja>();
     public DbSet<Endereco> Enderecos => Set<Endereco>();
     public DbSet<Uniforme> Uniformes => Set<Uniforme>();
+    public DbSet<Administrador> Administradores => Set<Administrador>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +41,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(en => en.Cidade).HasMaxLength(100).IsRequired();
             e.Property(en => en.Uf).HasMaxLength(2).IsFixedLength().IsRequired();
             e.HasIndex(en => new { en.Uf, en.Cidade }); // usado na listagem por estado/cidade (RF03)
+        });
+
+        modelBuilder.Entity<Administrador>(e =>
+        {
+            e.Property(a => a.Usuario).HasMaxLength(40).IsRequired();
+            e.HasIndex(a => a.Usuario).IsUnique();
+            e.Property(a => a.SenhaHash).HasMaxLength(100).IsRequired();
         });
 
         modelBuilder.Entity<Uniforme>(e =>

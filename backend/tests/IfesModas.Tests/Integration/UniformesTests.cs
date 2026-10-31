@@ -39,7 +39,7 @@ public class UniformesTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var criado = (await criar.Content.ReadFromJsonAsync<UniformeDto>(Json))!;
 
         // RF09: aparece na página pública da loja
-        var pagina = await factory.CreateClient().GetFromJsonAsync<LojaDetalheDto>($"/api/lojas/{auth.Loja.Id}", Json);
+        var pagina = await factory.CreateClient().GetFromJsonAsync<LojaDetalheDto>($"/api/lojas/{auth.Loja!.Id}", Json);
         Assert.Contains(pagina!.Uniformes, u => u.Id == criado.Id && u.Preco == 40m);
 
         // RF06: altera

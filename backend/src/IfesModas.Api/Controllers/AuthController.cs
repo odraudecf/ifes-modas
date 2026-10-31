@@ -23,7 +23,7 @@ public class AuthController(AuthService auth) : ControllerBase
     public async Task<ActionResult<AuthResponse>> Cadastrar(CadastroRequest req, CancellationToken ct)
     {
         var resposta = await auth.CadastrarAsync(req, ct);
-        return CreatedAtAction(nameof(LojasController.Obter), "Lojas", new { id = resposta.Loja.Id }, resposta);
+        return CreatedAtAction(nameof(LojasController.Obter), "Lojas", new { id = resposta.Loja!.Id }, resposta);
     }
 
     /// <summary>Regras do cadastro neste ambiente. Em produção o CNPJ é sempre obrigatório.</summary>

@@ -14,7 +14,7 @@ public class LojasTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var anonimo = factory.CreateClient();
 
         Assert.Equal(HttpStatusCode.OK, (await anonimo.GetAsync("/api/lojas")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await anonimo.GetAsync($"/api/lojas/{auth.Loja.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await anonimo.GetAsync($"/api/lojas/{auth.Loja!.Id}")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await anonimo.GetAsync("/health")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await anonimo.GetAsync("/swagger/v1/swagger.json")).StatusCode);
     }
@@ -69,7 +69,7 @@ public class LojasTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
         var corpo = await resp.Content.ReadAsStringAsync();
         Assert.Contains("Há campos inválidos.", corpo);
-        Assert.Contains("Informe o CNPJ.", corpo);
+        Assert.Contains("Informe o CNPJ ou o usuário.", corpo);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class LojasTests(ApiFactory factory) : IClassFixture<ApiFactory>
     {
         var (_, auth) = await factory.LojaLogadaAsync();
 
-        var json = await factory.CreateClient().GetStringAsync($"/api/lojas/{auth.Loja.Id}");
+        var json = await factory.CreateClient().GetStringAsync($"/api/lojas/{auth.Loja!.Id}");
 
         Assert.DoesNotContain("senha", json, StringComparison.OrdinalIgnoreCase);
     }
@@ -92,7 +92,7 @@ public class LojasTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var resp = await client.PutAsJsonAsync("/api/lojas/me", req, Json);
 
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
-        var detalhe = await factory.CreateClient().GetFromJsonAsync<LojaDetalheDto>($"/api/lojas/{auth.Loja.Id}", Json);
+        var detalhe = await factory.CreateClient().GetFromJsonAsync<LojaDetalheDto>($"/api/lojas/{auth.Loja!.Id}", Json);
         Assert.Equal("Nome Novo", detalhe!.Nome);
         Assert.Equal("Guaçuí", detalhe.Endereco.Cidade);
         Assert.Equal("S/N", detalhe.Endereco.Numero);

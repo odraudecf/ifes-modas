@@ -264,3 +264,29 @@ Pedido do grupo: hovers e mais coisas clicáveis, para o site "responder" ao usu
 
 **Sobre: uma equipe por versão.** A seção "Equipe" mostrava os seis alunos do TCC como se fossem a equipe das duas versões. Agora "Versões e equipes" tem duas abas, uma para cada ano: **2024** (versão 1.0, os seis alunos da turma 2022–2024) e **2026** (versão 2.0, Eduardo Castro Fernandes). O ano escolhido fica verde-escuro, com uma seta apontando para a equipe logo abaixo, e cada aba diz quantas pessoas formam aquela equipe. A página abre na versão atual (2026). As abas seguem o padrão acessível (`role="tab"`) e trocam pelas setas do teclado.
 
+---
+
+## Etapa 12 — Administrador e painel
+
+**Novo papel: administrador.** Pode alterar qualquer loja e o catálogo dela, ver um painel com os números do sistema, ver quem pode entrar e criar usuários (loja ou admin).
+
+- **Login único:** o admin entra pela mesma tela "Área da loja", digitando o **usuário** no lugar do CNPJ. A API decide pelo texto: se é um CNPJ válido, procura a loja; senão, procura o admin. Por isso o usuário de um admin não pode ser um CNPJ válido.
+- **Primeiro acesso `Admin` / `123`:** criado automaticamente quando não há nenhum admin (inclusive em produção). Como essa senha é pública, a troca é **obrigatória**: o token do primeiro acesso leva a marca `trocar_acesso`, e a API recusa as rotas de admin (403) até o usuário e a senha serem trocados em "Minha conta". Admins criados por outro admin seguem a mesma regra (senha provisória).
+- **Papéis no JWT:** `role` = `loja` ou `admin`, com políticas de autorização separadas. Sem isso, o admin de id 1 poderia usar as rotas da loja de id 1, porque são tabelas diferentes com ids que se repetem.
+- **Reaproveitamento:** o admin usa as mesmas regras das lojas (`LojaService`, `UniformeService`, `AuthService`) e, no front, o mesmo catálogo e o mesmo formulário de dados, só trocando as rotas onde gravam.
+- **Logs estruturados** dos eventos de negócio (`ILogger` com templates): loja cadastrada, admin entrou, admin alterou loja ou item, admin criado, acesso trocado.
+
+**Painel (skill de dataviz):**
+- Números no topo: lojas (com cidades e estados), itens no catálogo, lojas sem catálogo (destacada quando maior que zero) e administradores.
+- **Onde ficam as lojas:** barras horizontais ordenadas por cidade.
+- **Itens por peça:** barras empilhadas masculino/feminino, com legenda.
+- **Tamanhos** e **numeração das calças:** colunas na ordem de vestir.
+- **Preço por peça:** traço do menor ao maior preço e ponto na média.
+- Listas acionáveis: lojas sem catálogo e últimos cadastros, com link para a loja.
+- Regras da skill aplicadas: barras finas com ponta arredondada e base reta, espaço de 2px entre as partes da pilha, rótulo só no fim da barra, texto nunca na cor da série, dica no hover **e no foco do teclado**, botão "Ver tabela" em todo gráfico.
+- **Cores validadas com o script da skill:** verde + laranja **reprovou** (para quem tem daltonismo protan as duas ficam quase iguais, ΔE 5,3). Ficou verde da marca + violeta (ΔE 26).
+
+**Testes:** 10 novos, total de **90** (primeiro acesso e troca obrigatória, senha atual errada, cada papel só nas próprias rotas, admin alterando loja e itens, admin criando admin com 409 no usuário repetido, usuários inválidos, admin criando loja, números do painel). **Teste de mutação:** desligando a trava da troca obrigatória, o teste do primeiro acesso falhou, como deveria.
+
+**Atenção para produção:** no primeiro deploy, o `Admin`/`123` é criado no banco. Alguém do grupo deve entrar e trocar o acesso logo em seguida.
+
