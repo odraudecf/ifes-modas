@@ -290,3 +290,5 @@ Pedido do grupo: hovers e mais coisas clicáveis, para o site "responder" ao usu
 
 **Atenção para produção:** no primeiro deploy, o `Admin`/`123` é criado no banco. Alguém do grupo deve entrar e trocar o acesso logo em seguida.
 
+**Conta de admin para a correção.** O `Admin`/`123` não serve como conta de teste: ele é obrigado a trocar o acesso, então o primeiro que entrasse trocaria a senha e ela pararia de valer para os outros. Por isso os dados de demonstração criam também a conta **`corretor` / `ifes2026`**, sem troca obrigatória, publicada no README. Ela só é criada se ainda não existir, e um teste (91 no total) prova que ela entra direto no painel.
+

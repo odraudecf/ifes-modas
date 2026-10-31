@@ -151,7 +151,10 @@ using (var scope = app.Services.CreateScope())
         await db.Database.EnsureCreatedAsync(); // testes (banco em memória)
 
     if (app.Configuration.GetValue("Seed:Enabled", true))
+    {
         await DbSeeder.SeedAsync(db);
+        await DbSeeder.SeedAdminTesteAsync(db); // conta "corretor" do README
+    }
 
     await DbSeeder.SeedAdminAsync(db); // sempre: garante o primeiro acesso do admin
 }

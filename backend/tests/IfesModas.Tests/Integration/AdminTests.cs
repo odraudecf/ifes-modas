@@ -62,6 +62,18 @@ public class AdminTests
     }
 
     [Fact]
+    public async Task Conta_de_teste_do_corretor_entra_direto_no_painel_sem_trocar_acesso()
+    {
+        await using var factory = new ApiFactory { SeedDemo = true };
+
+        var auth = await EntrarAsync(factory.CreateClient(), DbSeeder.AdminTeste, DbSeeder.SenhaAdminTeste);
+
+        Assert.False(auth.Admin!.DeveTrocarAcesso);
+        var painel = await Com(factory, auth.Token).GetFromJsonAsync<PainelDto>("/api/admin/painel", Json);
+        Assert.Equal(5, painel!.Totais.Lojas); // as lojas do seed
+    }
+
+    [Fact]
     public async Task Trocar_acesso_com_senha_atual_errada_devolve_400()
     {
         await using var factory = new ApiFactory();

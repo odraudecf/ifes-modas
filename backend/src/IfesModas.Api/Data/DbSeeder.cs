@@ -57,6 +57,27 @@ public static class DbSeeder
         await db.SaveChangesAsync(ct);
     }
 
+    /// <summary>
+    /// Conta de administrador para a correção do trabalho (publicada no README). Não exige troca de acesso:
+    /// se exigisse, o primeiro que entrasse trocaria a senha e ela pararia de valer para os outros.
+    /// </summary>
+    public const string AdminTeste = "corretor";
+    public const string SenhaAdminTeste = "ifes2026";
+
+    /// <summary>Cria a conta de teste do admin se ela não existir (faz parte dos dados de demonstração).</summary>
+    public static async Task SeedAdminTesteAsync(AppDbContext db, CancellationToken ct = default)
+    {
+        if (await db.Administradores.AnyAsync(a => a.Usuario.ToLower() == AdminTeste, ct)) return;
+
+        db.Administradores.Add(new Administrador
+        {
+            Usuario = AdminTeste,
+            SenhaHash = BCrypt.Net.BCrypt.HashPassword(SenhaAdminTeste),
+            DeveTrocarAcesso = false
+        });
+        await db.SaveChangesAsync(ct);
+    }
+
     private static Loja NovaLoja(string cnpj, string nome, string telefone, string rua, string numero, string bairro,
         string cidade, string uf, string hash) => new()
     {

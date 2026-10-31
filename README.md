@@ -62,7 +62,8 @@ Erros em **ProblemDetails** (RFC 9457), em português. "Loja" e "admin" são os 
 - Protegida do admin (401 sem token): https://ifes-modas-api.onrender.com/api/admin/painel
 
 ## Contas de teste (fictícias)
-- admin: `Admin` / `123` (primeiro acesso: o sistema obriga a trocar usuário e senha antes de liberar a administração)
+- admin: `corretor` / `ifes2026` (conta de teste: entra direto na administração, sem troca obrigatória)
+- O admin de primeiro acesso (`Admin` / `123`) existe só para o grupo assumir o sistema: ele é obrigado a trocar usuário e senha logo no primeiro login, por isso não serve como conta de teste.
 - loja A: CNPJ `20.240.101/0001-47` / `ifes2024` (Malharia Caparaó) · loja B: CNPJ `20.240.202/0001-18` / `ifes2024` (Uniformes Guararema)
 
 As lojas e os catálogos do seed são inventados. **Atenção:** os números de CNPJ do seed têm dígito verificador válido e, ao consultar a Receita, descobrimos que existem (ver erro nº 13 em `docs/REGISTRO_IA.md`); trocá-los está pendente.
@@ -100,7 +101,7 @@ cd backend
 dotnet tool install --global dotnet-ef                         # uma vez
 dotnet ef database update --project src/IfesModas.Api           # opcional: a API também aplica as migrations ao subir
 dotnet run --project src/IfesModas.Api --launch-profile http    # http://localhost:5112/swagger
-dotnet test                                                     # 90 testes (unitários + integração)
+dotnet test                                                     # 91 testes (unitários + integração)
 
 # Front
 cd ../frontend

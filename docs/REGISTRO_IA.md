@@ -15,7 +15,7 @@ O trabalho libera e recomenda IA. A regra é: **o código é nosso. Nós encomen
 1. **Contexto primeiro:** a IA leu o código PHP, o SQL, a documentação do TCC e os prints antes de propor qualquer coisa.
 2. **Plano aprovado antes do código:** a IA escreveu um plano (estrutura, endpoints, modelo de dados, CI/CD), nós fizemos perguntas, decidimos (conta do GitHub, Docker, dados de demonstração) e aprovamos.
 3. **Etapas pequenas, um commit por etapa:** assim dá para revisar o diff de cada coisa que a IA gerou (`git log`).
-4. **Conferência em quatro níveis:** compilação → testes automatizados (90) → teste manual com Postgres real (`curl`) → teste no navegador.
+4. **Conferência em quatro níveis:** compilação → testes automatizados (91) → teste manual com Postgres real (`curl`) → teste no navegador.
 5. **Nada de segredo no chat:** a string de conexão do Neon e a chave do JWT vão direto para o painel do Render, nunca para a conversa nem para o Git.
 
 ## Linha do tempo
@@ -25,7 +25,7 @@ O trabalho libera e recomenda IA. A regra é: **o código é nosso. Nós encomen
 | 1 | Recriar o sistema a partir do código, da documentação e das imagens, na stack do trabalho | Análise do sistema antigo, lista de bugs e plano | Abrimos os arquivos PHP citados e confirmamos cada bug |
 | 2 | Criar repositório e ambiente | .NET 10 SDK, Docker Desktop, repo no GitHub | `dotnet --list-sdks`, `gh repo view` |
 | 3 | API com EF Core, JWT, BCrypt e Swagger | Domínio, serviços, controllers, migration | Build + revisão da migration (tipos, índices) |
-| 4 | Testes xUnit | 60 testes (hoje 90) | Rodaram verdes **e** fizemos o teste de mutação (ver abaixo) |
+| 4 | Testes xUnit | 60 testes (hoje 91) | Rodaram verdes **e** fizemos o teste de mutação (ver abaixo) |
 | 5 | Docker + GitHub Actions + Render | Dockerfile, compose, workflow, `render.yaml` | Primeiro push com os 4 jobs verdes |
 | 6 | Front em React | Telas, cliente HTTP, autenticação | Lint, build e navegação real no Chrome |
 | 7 | Documentar para o seminário | Este registro, o diário, o README e o roteiro | Leitura e revisão do grupo |
