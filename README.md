@@ -1,187 +1,136 @@
-# Ifes Modas 2.0
+# Ifes Modas API
+**Nicho:** IFES MODAS - Site de Direcionamento e Compra de Uniformes Escolares · **Aluno:** Eduardo Castro Fernandes (@odraudecf)
+**API no ar:** https://ifes-modas-api.onrender.com/swagger
+**Saúde e versão:** https://ifes-modas-api.onrender.com/health · _(a rota `/api/versao` ainda não existe)_
+**Front-end:** https://ifes-modas.onrender.com
 
 [![CI/CD](https://github.com/odraudecf/ifes-modas/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/odraudecf/ifes-modas/actions/workflows/ci-cd.yml)
 
-Vitrine das lojas que vendem os **uniformes do Ifes Campus de Alegre**. O aluno vê as lojas por estado e cidade, os tamanhos e preços de cada peça e o contato da loja. As lojas parceiras se cadastram e cuidam do próprio catálogo.
-
-É a recriação do nosso TCC de 2024 (PHP + MySQL) na stack exigida pelo trabalho, com os bugs de segurança do original corrigidos.
-
-| | Link |
-|---|---|
-| **Site** | https://ifes-modas.onrender.com |
-| **API (Swagger)** | https://ifes-modas-api.onrender.com/swagger |
-| **Health check** | https://ifes-modas-api.onrender.com/health |
-| **Ambiente de teste** (branch `Dev`) | https://ifes-modas-dev.onrender.com · API: https://ifes-modas-api-dev.onrender.com/swagger |
-
 > **Primeira visita lenta?** No plano gratuito do Render a API "dorme" depois de 15 minutos sem uso e leva até ~1 minuto para acordar. O site avisa enquanto isso.
 
-**Login de demonstração:** CNPJ `20.240.101/0001-47`, senha `ifes2024` (loja fictícia "Malharia Caparaó").
+## O que a API faz
 
----
+Vitrine das lojas que vendem os **uniformes do Ifes Campus de Alegre**. O aluno (sem login) vê as lojas por estado e cidade, os tamanhos e preços de cada peça (camisa padrão, camisa agropecuária, bermuda e calça) e o contato da loja. As **lojas** se cadastram pelo CNPJ (a API busca nome, telefone e endereço na Receita) e cuidam do próprio catálogo. O **administrador** altera qualquer loja e o catálogo dela, vê um painel com os números do sistema e cria usuários.
 
-## Stack
+É a recriação do nosso TCC de 2024 (PHP + MySQL), com os bugs de segurança do original corrigidos (senhas em texto puro, login pela URL, SQL injection).
 
-| Camada | Tecnologia |
-|---|---|
-| API | **.NET 10** · ASP.NET Core Web API (controllers) |
-| Banco | **PostgreSQL** no **Neon** · **EF Core 10** + **Npgsql** 10 (migrations, snake_case) |
-| Segurança | **JWT** (HMAC-SHA256) · **BCrypt** para senhas · rate limit no login · CORS restrito |
-| Documentação da API | **Swashbuckle** 10 (Swagger UI com botão *Authorize*) |
-| Testes | **xUnit** · `WebApplicationFactory` (testes de integração com a API real) |
-| Front | **React 19** + **Vite 8** · React Router · ícones Lucide |
-| Entrega | **Docker** (multi-stage) · **GitHub Actions** · **Render** (API em Docker + site estático) |
+**Regras que devolvem 409:**
+- **CNPJ repetido:** uma loja não se cadastra duas vezes (`POST /api/auth/cadastro` e `POST /api/admin/usuarios/lojas`).
+- **Usuário de administrador repetido**, sem diferenciar maiúsculas (`POST /api/admin/usuarios/admins` e `PUT /api/admin/conta`).
 
-## O que mudou em relação ao sistema antigo
+Outras regras: a loja só altera os **próprios** uniformes (403 nos de outra loja); camisa tem tamanho PP–XGG e modelo; calça tem número de 30 a 60 e não tem modelo; o admin no primeiro acesso é obrigado a trocar usuário e senha (403 no resto até trocar); em produção o CNPJ é obrigatório.
 
-| Sistema antigo (PHP) | Agora |
-|---|---|
-| SQL montado concatenando texto → **SQL injection** | EF Core com consultas parametrizadas |
-| "Sessão" na URL (`?cnpj=...`): editando a URL você virava outra loja | **JWT** assinado + checagem de dono (403) |
-| `Preço decimal(3,2)`: máximo **R$ 9,99** | `numeric(10,2)` |
-| "BH" oferecido como estado | Só as 27 UFs reais |
-| Login com `if ($result > 0)`, sempre verdadeiro | Login correto, mensagem genérica, BCrypt |
-| Lista de lojas com 3 blocos copiados (só o ES funcionava) | Um endpoint agrupado Estado → Cidade → Lojas |
-| CRUD de roupas e página da loja eram **HTML fixo** | CRUD real e página da loja vindos do banco |
-| "Alterar dados da loja" sem implementação | `PUT /api/lojas/me` + tela |
-| CNPJ sem validação | Dígitos verificadores, **incluindo o CNPJ alfanumérico** (Receita, 2026) |
+## Recursos e endpoints
 
-## Requisitos atendidos
+Erros em **ProblemDetails** (RFC 9457), em português. "Loja" e "admin" são os papéis gravados no JWT (`role`); um token de um papel recebe 403 nas rotas do outro.
 
-| RF | Descrição | Onde |
-|---|---|---|
-| RF01 | Cadastro da loja | `POST /api/auth/cadastro` · tela Cadastro (o CNPJ preenche o resto pela Receita: `GET /api/cnpj/{cnpj}`) |
-| RF02 | Login da loja | `POST /api/auth/login` · tela Login |
-| RF03 | Listar lojas por estado e município | `GET /api/lojas` · tela Lojas |
-| RF04 | Encaminhar para doações | tela Doações |
-| RF05 | Adicionar item | `POST /api/uniformes` · tela Roupas |
-| RF06 | Alterar item | `PUT /api/uniformes/{id}` · tela Roupas |
-| RF07 | Excluir item | `DELETE /api/uniformes/{id}` · tela Roupas |
-| RF08 | Ver informações da loja | `GET /api/lojas/{id}` · página da loja |
-| RF09 | Ver itens da loja | `GET /api/lojas/{id}` · página da loja |
-
-## API
-
-As rotas de consulta são **públicas** (funcionam sem token). As de gerenciamento exigem `Authorization: Bearer <token>`.
-
-| Método | Rota | Token | O que faz |
+| Verbo | Rota | Quem pode | Respostas |
 |---|---|---|---|
-| POST | `/api/auth/cadastro` | — | Cadastra a loja e devolve o token |
-| POST | `/api/auth/login` | — | Login com CNPJ e senha |
-| GET | `/api/auth/regras` | — | Regras do cadastro neste ambiente (`exigirCnpj`) |
-| GET | `/api/cnpj/{cnpj}` | — | Dados do CNPJ na Receita (BrasilAPI → CNPJá → ReceitaWS) para preencher o cadastro |
-| GET | `/api/lojas?uf=ES` | — | Lojas agrupadas por estado e cidade (filtro opcional) |
-| GET | `/api/lojas/{id}` | — | Dados, endereço, contatos e catálogo da loja |
-| GET | `/api/lojas/me` | ✔ | Dados da loja logada |
-| PUT | `/api/lojas/me` | ✔ | Altera nome, contato, redes e endereço |
-| GET | `/api/uniformes/minhas` | ✔ | Catálogo da loja logada |
-| POST | `/api/uniformes` | ✔ | Adiciona uniforme |
-| PUT | `/api/uniformes/{id}` | ✔ dono | Altera (403 se for de outra loja) |
-| DELETE | `/api/uniformes/{id}` | ✔ dono | Exclui (403 se for de outra loja) |
-| GET | `/health` | — | Health check do Render |
+| POST | /api/auth/cadastro | todos | 201, 400, 409, 429 |
+| POST | /api/auth/login (CNPJ da loja **ou** usuário do admin) | todos | 200, 400, 401, 429 |
+| GET | /api/auth/regras | todos | 200 |
+| GET | /api/cnpj/{cnpj} | todos | 200, 400, 404, 429, 503 |
+| GET | /api/lojas?uf= | todos | 200 |
+| GET | /api/lojas/{id} | todos | 200, 404 |
+| GET | /api/lojas/me | loja | 200, 401, 403 |
+| PUT | /api/lojas/me | loja | 200, 400, 401, 403 |
+| GET | /api/uniformes/minhas | loja | 200, 401, 403 |
+| POST | /api/uniformes | loja | 201, 400, 401, 403 |
+| PUT | /api/uniformes/{id} | loja dona do item | 200, 400, 401, 403, 404 |
+| DELETE | /api/uniformes/{id} | loja dona do item | 204, 401, 403, 404 |
+| GET | /api/admin/painel | admin | 200, 401, 403 |
+| GET | /api/admin/lojas?busca= | admin | 200, 401, 403 |
+| GET | /api/admin/lojas/{id} | admin | 200, 401, 403, 404 |
+| PUT | /api/admin/lojas/{id} | admin | 200, 400, 401, 403, 404 |
+| POST | /api/admin/lojas/{id}/uniformes | admin | 201, 400, 401, 403, 404 |
+| PUT | /api/admin/lojas/{id}/uniformes/{uniformeId} | admin | 200, 400, 401, 403, 404 |
+| DELETE | /api/admin/lojas/{id}/uniformes/{uniformeId} | admin | 204, 401, 403, 404 |
+| GET | /api/admin/usuarios | admin | 200, 401, 403 |
+| POST | /api/admin/usuarios/admins | admin | 201, 400, 401, 403, 409 |
+| POST | /api/admin/usuarios/lojas | admin | 201, 400, 401, 403, 409 |
+| GET | /api/admin/conta | admin (mesmo com a troca pendente) | 200, 401, 403 |
+| PUT | /api/admin/conta | admin (mesmo com a troca pendente) | 200, 400, 401, 403, 409 |
+| GET | /health | todos | 200 |
 
-**Testar pelo Swagger:** abra `/swagger` → `POST /api/auth/login` com o login de demonstração → copie o `token` → botão **Authorize** → cole o token.
+**Testar pelo Swagger:** `POST /api/auth/login` com uma conta abaixo → copie o `token` → botão **Authorize** → cole o token.
 
-Erros seguem o padrão **ProblemDetails** (RFC 9457), em português:
+## Rotas para o corretor testar (sem token)
+- Listagem (agrupada por estado e cidade; não é paginada): https://ifes-modas-api.onrender.com/api/lojas
+- Filtro que encontra algo: https://ifes-modas-api.onrender.com/api/lojas?uf=ES · sem resultado (200 com lista vazia): https://ifes-modas-api.onrender.com/api/lojas?uf=AC
+- Detalhe: https://ifes-modas-api.onrender.com/api/lojas/1 · inexistente (404): https://ifes-modas-api.onrender.com/api/lojas/9999
+- Protegida (401 sem token): https://ifes-modas-api.onrender.com/api/uniformes/minhas
+- Protegida do admin (401 sem token): https://ifes-modas-api.onrender.com/api/admin/painel
 
-```json
-{ "status": 403, "title": "Este uniforme pertence a outra loja." }
-```
+## Contas de teste (fictícias)
+- admin: `Admin` / `123` (primeiro acesso: o sistema obriga a trocar usuário e senha antes de liberar a administração)
+- loja A: CNPJ `20.240.101/0001-47` / `ifes2024` (Malharia Caparaó) · loja B: CNPJ `20.240.202/0001-18` / `ifes2024` (Uniformes Guararema)
 
-## Como rodar localmente
+As lojas e os catálogos do seed são inventados. **Atenção:** os números de CNPJ do seed têm dígito verificador válido e, ao consultar a Receita, descobrimos que existem (ver erro nº 13 em `docs/REGISTRO_IA.md`); trocá-los está pendente.
 
-**Opção 1: Docker (tudo de uma vez)**
+## Banco de dados
+
+PostgreSQL no Neon, com EF Core 10 + Npgsql, nomes em `snake_case`. Migrations versionadas em `backend/src/IfesModas.Api/Data/Migrations` (`Inicial` e `Administradores`), aplicadas sozinhas quando a API sobe. O seed (`DbSeeder.cs`) só roda com o banco vazio.
+
+| Entidade | Principais campos |
+|---|---|
+| **Loja** | `cnpj` (único, 14 caracteres, aceita o CNPJ alfanumérico), `nome`, `telefone`, `instagram`, `facebook`, `senha_hash` (BCrypt), `criado_em` |
+| **Endereco** (1 para 1 com Loja) | `rua`, `numero`, `bairro`, `cidade`, `uf` (só as 27 siglas reais) |
+| **Uniforme** | `tipo` (Camisa, Bermuda, Calca), `modelo` (Padrao, Agropecuaria; só camisa), `genero`, `tamanho`, `preco`, `loja_id` |
+| **Administrador** | `usuario` (único), `senha_hash` (BCrypt), `deve_trocar_acesso`, `criado_em` |
+
+**Relação 1 para N:** uma **Loja** tem muitos **Uniformes** (`uniformes.loja_id`, exclusão em cascata).
+
+**Onde está a regra do 409:** CNPJ repetido em `AuthService.CriarLojaAsync` (com índice único em `lojas.cnpj` no banco); usuário de admin repetido em `AdminService.GarantirUsuarioLivreAsync` (índice único em `administradores.usuario`).
+
+## Como rodar no computador
+
+**Variáveis de ambiente da API** (os valores ficam fora do repositório):
+
+| Variável | Para quê |
+|---|---|
+| `ConnectionStrings__Default` | String de conexão do Postgres (aceita a URL do Neon) |
+| `Jwt__Key` | Chave do JWT, com pelo menos 32 caracteres |
+| `Cors__Origins` | Endereço do front liberado no CORS |
+| `Cadastro__ExigirCnpj` | Opcional (padrão `true`); `false` só no ambiente de teste |
+| `RateLimit__AuthPorMinuto` | Opcional (padrão 10) |
 
 ```bash
-docker compose up --build          # Postgres + API em http://localhost:8080/swagger
-cd frontend && cp .env.example .env.local
-# troque VITE_API_URL para http://localhost:8080
-npm install && npm run dev         # http://localhost:5173
-```
-
-**Opção 2: sem Docker** (precisa de um Postgres; pode ser um branch `dev` do Neon)
-
-```bash
+# API (precisa de um Postgres; pode ser uma branch do Neon)
 cd backend
-dotnet user-secrets set "ConnectionStrings:Default" "<sua string de conexão>" --project src/IfesModas.Api
-dotnet run --project src/IfesModas.Api --launch-profile http     # http://localhost:5112/swagger
+dotnet tool install --global dotnet-ef                         # uma vez
+dotnet ef database update --project src/IfesModas.Api           # opcional: a API também aplica as migrations ao subir
+dotnet run --project src/IfesModas.Api --launch-profile http    # http://localhost:5112/swagger
+dotnet test                                                     # 90 testes (unitários + integração)
 
+# Front
 cd ../frontend
-npm install && npm run dev                                       # http://localhost:5173
+cp .env.example .env.local                                      # VITE_API_URL=http://localhost:5112
+npm install && npm run dev                                      # http://localhost:5173
 ```
 
-As migrations e os dados de demonstração são aplicados sozinhos quando a API sobe.
+Alternativa com Docker: `docker compose up --build` sobe Postgres + API em http://localhost:8080/swagger.
 
-**Testes**
+**Publicação:** cada push na `main` roda o GitHub Actions (testes xUnit, lint e build do front, build da imagem Docker) e, com tudo verde, dispara o deploy no Render pelos Deploy Hooks. A branch `Dev` faz o mesmo para um ambiente de teste separado, com outro banco e outra chave JWT: https://ifes-modas-dev.onrender.com
 
-```bash
-cd backend && dotnet test        # 80 testes (unitários + integração)
-cd frontend && npm run lint && npm run build
-```
+## Front-end
 
-## Branches e ambientes
+React 19 + Vite 8 + React Router, na pasta `frontend/`, publicado como Static Site no Render e consumindo a API publicada (`VITE_API_URL`).
 
-| Branch | Para quê | Publica em | Banco (Neon) | Blueprint |
-|---|---|---|---|---|
-| `main` | Versão oficial, a que o professor avalia | **Produção**: ifes-modas.onrender.com | branch `main` | `render.yaml` |
-| `Dev` | Mudanças em andamento, para o grupo testar antes | **Teste**: ifes-modas-dev.onrender.com | branch `dev` (cópia isolada) | `render.dev.yaml` |
+- **Público:** início com busca por peça e tamanho; lojas com filtros por peça, tamanho e cidade, busca por texto e preço de cada loja; página da loja com WhatsApp por tamanho (mensagem pronta) e "Como chegar"; doações; sobre (equipe de cada versão).
+- **Loja:** cadastro em 3 etapas a partir do CNPJ; login; visão geral; roupas (vários tamanhos de uma vez, editar, excluir); dados da loja.
+- **Admin:** entra pela mesma tela de login com o usuário; painel com gráficos; lojas (alterar dados e catálogo de qualquer loja); usuários (listar e criar loja ou admin); minha conta (troca obrigatória no primeiro acesso).
+- As mensagens de erro da API (ProblemDetails) aparecem na tela, inclusive por campo.
 
-Fluxo: trabalhar na `Dev` → push → conferir no ambiente de teste → **Pull Request da `Dev` para a `main`** → o merge publica em produção.
-O teste usa outro banco e outra chave JWT: cadastrar, editar ou excluir no teste não mexe em nada da produção.
-Regra que muda por ambiente: em produção o **CNPJ é obrigatório** no cadastro; no teste (`Cadastro__ExigirCnpj=false`) dá para cadastrar sem ele, e a API gera um CNPJ fictício que vira o login da loja.
+**CORS:** a API libera só a origem do front, pela variável **`Cors__Origins`** (no Render: `https://ifes-modas.onrender.com`). O nome está em inglês, e não `Cors__Origens`.
 
-## CI/CD: cada push na `main` (ou na `Dev`) publica sozinho
+## Como usei a IA
+- **IA usada:** Claude Code (Anthropic), no terminal, com acesso ao repositório, ao navegador (Claude in Chrome) e às skills de frontend design e dataviz.
+- **Os 3 pedidos (prompts) que mais ajudaram:**
+  1. *"Nesse diretório há arquivos de documentação e códigos de um projeto antigo que fiz com amigos. Utilize o código, a documentação e as imagens como base para que possamos recriar o sistema"*, seguido da stack obrigatória do trabalho.
+  2. *"Ao cadastrar um CNPJ, ele acessa APIs de CNPJ para resgatar o restante das informações. Para teste, permita não colocar um CNPJ, mas em produção, sempre precisa de ter um CNPJ."*
+  3. *"Crie o papel de admin. Permita ao admin fazer alterações nas lojas e nos seus itens. Crie uma aba de dashboards para o admin"*, com primeiro acesso `Admin`/`123` e troca de usuário e senha.
+- **Um erro da IA que percebi e como corrigi:** no `render.yaml`, a IA usou `fromService` com `property: host` para preencher `Cors__Origins` e `VITE_API_URL`, achando que daria o endereço público. Isso devolve o **nome interno** do serviço (`ifes-modas-api`): o front chamava `https://ifes-modas-api` e o CORS liberava `https://ifes-modas`. Todos os testes passavam, e o erro só apareceu na verificação em produção (o preflight voltou sem `Access-Control-Allow-Origin`). A correção trocou o trecho por URLs públicas fixas (`value: https://ifes-modas.onrender.com` e `value: https://ifes-modas-api.onrender.com`). Os outros erros estão em [`docs/REGISTRO_IA.md`](docs/REGISTRO_IA.md).
+- **O prompt usado para gerar o front:** o mesmo pedido inicial (recriar o sistema "no front React + Vite", a partir das telas do TCC). Depois, o layout foi refeito com *"Modernize o site, utilize layouts melhores, mais intuitivos. Melhore todas as páginas: a exibição de lojas, informação de doação, cadastro, tudo."*
+- **O que aprendi:** teste automático não substitui conferir o sistema no ar (o erro do CORS passou por todos os testes); um teste só prova algo se falhar quando a regra é quebrada (por isso fizemos testes de mutação); a autorização tem que estar na API, não só na tela; e uma resposta da IA precisa ser conferida, inclusive os dados "de exemplo" que ela cria (os CNPJs "fictícios" eram reais).
 
-```
-push na main ─► GitHub Actions
-                ├─ API: build + 80 testes xUnit
-                ├─ Front: lint + build
-                └─ Docker: build da imagem
-                        │ todos verdes?
-                        ▼
-                deploy: Deploy Hooks do Render ─► API (Docker) e Front (estático) no ar
-```
-
-Na `Dev` é igual, mas o deploy usa os hooks do ambiente de teste (`RENDER_DEPLOY_HOOK_API_DEV` e `RENDER_DEPLOY_HOOK_FRONT_DEV`). Cada branch só enxerga os hooks do próprio ambiente.
-
-O auto-deploy do próprio Render fica **desligado** (`render.yaml`). Quem manda publicar é o Actions, depois dos testes. Código que quebra teste não chega à produção.
-
-### Configuração da produção (feita uma vez)
-
-1. **Neon:** criar o projeto na região *AWS US East 1 (N. Virginia)* e copiar a connection string.
-2. **Render:** New → **Blueprint** → este repositório. Preencher `ConnectionStrings__Default` com a string do Neon (a `Jwt__Key` o Render gera sozinho).
-3. Em cada serviço do Render: Settings → **Deploy Hook** → copiar a URL.
-4. **GitHub** → Settings → Secrets and variables → Actions: criar `RENDER_DEPLOY_HOOK_API` e `RENDER_DEPLOY_HOOK_FRONT`.
-
-### Configuração do ambiente de teste (feita uma vez)
-
-1. **Neon:** no projeto, Branches → **Create branch** `dev` a partir da `main` e copiar a connection string dessa branch.
-2. **Render:** New → **Blueprint** → este repositório, branch **`Dev`**, Blueprint Path **`render.dev.yaml`**. Preencher `ConnectionStrings__Default` com a string da branch `dev`.
-3. Em cada serviço de teste (`ifes-modas-api-dev` e `ifes-modas-dev`): Settings → **Deploy Hook** → copiar a URL.
-4. **GitHub** → Secrets: criar `RENDER_DEPLOY_HOOK_API_DEV` e `RENDER_DEPLOY_HOOK_FRONT_DEV`.
-
-## Estrutura
-
-```
-backend/
-  src/IfesModas.Api/      Domain · Data · Dtos · Services · Controllers · Errors · Program.cs
-  tests/IfesModas.Tests/  Unit · Integration
-  Dockerfile
-frontend/
-  src/                    api · auth · components · lib · pages · styles
-docs/                     diário, registro de IA, arquitetura e roteiro do seminário
-.github/workflows/        ci-cd.yml
-render.yaml               Blueprint do Render
-docker-compose.yml        ambiente local
-```
-
-## Uso de IA
-
-O desenvolvimento usou o **Claude Code** (Anthropic) para análise do sistema antigo, planejamento, geração de código, testes, infraestrutura e documentação. Todo o código foi revisado, testado (80 testes, mais testes de mutação) e verificado manualmente com Postgres real e no navegador.
-
-O registro completo, com a linha do tempo, os **erros que a IA cometeu e como os pegamos**, está em [`docs/REGISTRO_IA.md`](docs/REGISTRO_IA.md). As decisões técnicas, etapa por etapa, estão em [`docs/DIARIO_DE_DESENVOLVIMENTO.md`](docs/DIARIO_DE_DESENVOLVIMENTO.md).
-
-## Equipe (TCC original, Ifes Campus de Alegre, 2022–2024)
-
-Davi Rodrigues Cunha · Eduardo Borges Cordeiro · Eduardo Castro Fernandes · Pedro Falleiro Mendes · Pedro Silva e Souza · Rafael José Abdalla Tiradentes Laurindo
-
-Orientador do TCC: Prof. Athus Cavalini
+Detalhes de cada etapa em [`docs/DIARIO_DE_DESENVOLVIMENTO.md`](docs/DIARIO_DE_DESENVOLVIMENTO.md).

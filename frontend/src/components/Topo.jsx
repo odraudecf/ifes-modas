@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Menu, Store, X } from 'lucide-react'
+import { Menu, ShieldCheck, Store, X } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext.js'
 
 const LINKS = [
@@ -11,7 +11,7 @@ const LINKS = [
 ]
 
 export function Topo() {
-  const { loja, logada } = useAuth()
+  const { loja, logada, admin } = useAuth()
   const { pathname } = useLocation()
 
   // O menu do celular guarda em qual página foi aberto; ao trocar de página ele fecha sozinho.
@@ -43,10 +43,17 @@ export function Topo() {
               <li key={l.para}><NavLink to={l.para} end={l.end}>{l.rotulo}</NavLink></li>
             ))}
           </ul>
-          <Link to={logada ? '/gerenciamento' : '/login'} className="botao secundario pequeno topo-loja">
-            <Store size={18} />
-            <span>{logada ? loja.nome : 'Área da loja'}</span>
-          </Link>
+          {admin ? (
+            <Link to="/admin" className="botao secundario pequeno topo-loja">
+              <ShieldCheck size={18} />
+              <span>Administração</span>
+            </Link>
+          ) : (
+            <Link to={logada ? '/gerenciamento' : '/login'} className="botao secundario pequeno topo-loja">
+              <Store size={18} />
+              <span>{logada ? loja.nome : 'Área da loja'}</span>
+            </Link>
+          )}
         </nav>
       </div>
     </header>

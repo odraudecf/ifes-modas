@@ -1,0 +1,717 @@
+/*
+ * Administração: moldura, listas e o painel de gráficos.
+ * Cores dos gráficos validadas com o validate_palette.js da skill de dataviz (fundo branco):
+ * --serie-1 (verde da marca) e --serie-2 (violeta) passam em faixa de luminosidade, croma,
+ * separação para daltonismo (ΔE 26) e contraste. Verde + laranja reprovou (protan ΔE 5,3).
+ */
+:root {
+  --serie-1: #1d7a2f;
+  --serie-2: #6250d6;
+  --grade: #e6ebe4;
+  --atencao-fundo: #fff8e6;
+  --atencao-borda: #ecd7a6;
+  --atencao-texto: #8a5a00;
+}
+
+/* ---------- Moldura ---------- */
+.admin-cartao {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border-bottom: 0;
+  border-radius: var(--raio-painel);
+  background: var(--mata);
+}
+
+.admin-selo {
+  color: #9fd3a8;
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.admin-cartao strong {
+  color: var(--papel);
+  overflow-wrap: anywhere;
+}
+
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.voltar:hover {
+  color: var(--verde-texto);
+}
+
+.painel-cabeca.embutido h2 {
+  color: var(--mata);
+  font-size: var(--t-lg);
+  font-weight: 800;
+  font-stretch: 80%;
+}
+
+.admin-loja-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: var(--t-sm);
+}
+
+.admin-loja-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.abas {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.aba {
+  margin-bottom: -1px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--tinta-2);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.aba[aria-selected='true'] {
+  border-bottom-color: var(--mata);
+  color: var(--mata);
+}
+
+.busca.busca-painel {
+  max-width: none;
+  margin: 0 0 20px;
+}
+
+/* ---------- Indicadores (números no topo do painel) ---------- */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+}
+
+.indicadores > div {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--linha);
+  border-radius: var(--raio-painel);
+}
+
+.indicadores dt {
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.indicadores dd {
+  margin: 2px 0;
+  color: var(--mata);
+  font-size: 2.25rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  line-height: 1;
+}
+
+.indicadores span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--tinta-3);
+  font-size: var(--t-xs);
+}
+
+.indicadores .atencao {
+  border-color: var(--atencao-borda);
+  background: var(--atencao-fundo);
+}
+
+.indicadores .atencao span {
+  color: var(--atencao-texto);
+}
+
+/* ---------- Cartões de gráfico ---------- */
+.graficos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.grafico {
+  position: relative;
+  margin: 0;
+  padding: 20px;
+  border: 1.5px solid var(--linha);
+  border-radius: var(--raio-painel);
+  background: var(--papel);
+}
+
+.grafico.largo {
+  grid-column: 1 / -1;
+}
+
+.grafico-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.grafico-topo h2 {
+  font-size: var(--t-md);
+}
+
+.grafico-topo p {
+  margin-top: 2px;
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+}
+
+.grafico-vazio {
+  color: var(--tinta-3);
+}
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: -4px 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.legenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+}
+
+.legenda-cor {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* Barras horizontais (simples e empilhadas): 18px de espessura, ponta de 4px, base reta. */
+.barras-h,
+.faixas ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barras-h li {
+  display: grid;
+  grid-template-columns: minmax(110px, 34%) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.barras-h-rotulo {
+  color: var(--tinta);
+  font-size: var(--t-sm);
+  line-height: 1.25; /* nome longo quebra a linha: texto de gráfico nunca é cortado */
+}
+
+.barras-h-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px; /* alvo do mouse maior que a barra */
+  border-radius: 4px;
+}
+
+.barra,
+.pilha {
+  height: 18px;
+  border-radius: 0 4px 4px 0;
+  transition: filter var(--rapido, 140ms) ease;
+}
+
+.barra {
+  min-width: 2px;
+}
+
+.pilha {
+  display: flex;
+  gap: 2px; /* o espaço em branco separa as partes, sem contorno */
+  overflow: hidden;
+}
+
+.pilha-parte {
+  min-width: 2px;
+}
+
+.barra-valor,
+.coluna-valor {
+  color: var(--tinta);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Colunas (tamanhos) */
+.colunas {
+  display: grid;
+  grid-template-columns: repeat(var(--colunas), minmax(0, 1fr));
+  gap: 8px;
+  height: 200px;
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.coluna-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  border-bottom: 1px solid var(--linha-forte);
+}
+
+.coluna-valor {
+  margin-bottom: 4px;
+}
+
+.coluna-barra {
+  width: min(24px, 70%);
+  border-radius: 4px 4px 0 0;
+  transition: filter var(--rapido, 140ms) ease;
+}
+
+.coluna-rotulo {
+  margin-top: 6px;
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+/* Faixas de preço: traço de 2px, pontos com anel branco de 2px, média maior. */
+.faixas li,
+.faixa-eixo {
+  display: grid;
+  grid-template-columns: minmax(110px, 34%) minmax(0, 1fr) 84px;
+  align-items: center;
+  gap: 12px;
+}
+
+.faixa-trilho {
+  position: relative;
+  height: 28px;
+  border-radius: 4px;
+}
+
+.faixa-trilho::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: var(--grade);
+}
+
+.faixa-linha {
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--serie-1);
+}
+
+.faixa-ponto {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--serie-1);
+  box-shadow: 0 0 0 2px var(--papel);
+}
+
+.faixa-ponto.media {
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+}
+
+.faixa-media {
+  color: var(--tinta);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.faixa-eixo {
+  margin-top: 6px;
+}
+
+.faixa-marcas {
+  position: relative;
+  height: 18px;
+}
+
+.faixa-marcas span {
+  position: absolute;
+  color: var(--tinta-3);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* A marca em foco ou sob o mouse clareia: o leitor vê que ela respondeu. */
+.barras-h-linha:hover .barra,
+.barras-h-linha:hover .pilha,
+.barras-h-linha:focus-visible .barra,
+.barras-h-linha:focus-visible .pilha,
+.coluna:hover .coluna-barra,
+.coluna:focus-visible .coluna-barra {
+  filter: brightness(1.25);
+}
+
+.faixa-trilho:hover .faixa-ponto.media,
+.faixa-trilho:focus-visible .faixa-ponto.media {
+  box-shadow: 0 0 0 2px var(--papel), 0 0 0 4px var(--serie-1);
+}
+
+/* Dica: valor em destaque, nome depois. */
+.dica {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: var(--raio);
+  background: var(--tinta);
+  color: #e6efe8;
+  font-size: var(--t-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 8px));
+  box-shadow: 0 8px 20px rgb(15 34 22 / 0.2);
+}
+
+.dica-titulo {
+  color: #b9c7bc;
+  font-size: var(--t-xs);
+}
+
+.dica-linha {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dica-linha strong {
+  color: var(--papel);
+  font-variant-numeric: tabular-nums;
+}
+
+.dica-traco {
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.tabela-grafico .numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Listas da administração ---------- */
+.listas-painel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.lista-admin {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-painel);
+  overflow: hidden;
+}
+
+.lista-admin > li + li {
+  border-top: 1px solid var(--linha);
+}
+
+.linha-admin {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--tinta);
+  font-size: var(--t-sm);
+  text-decoration: none;
+}
+
+.linha-admin > span {
+  color: var(--tinta-2);
+}
+
+.linha-admin-nome {
+  display: grid;
+  gap: 2px;
+}
+
+.linha-admin-nome strong {
+  color: var(--tinta);
+  font-size: var(--t-base);
+}
+
+.linha-admin-nome small {
+  color: var(--tinta-3);
+  font-size: var(--t-xs);
+}
+
+.linha-admin > .linha-admin-acao {
+  color: var(--verde-texto);
+  font-weight: 600;
+  text-align: right;
+}
+
+.tabela-lojas .linha-admin,
+.lista-admin-cabeca {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 110px;
+}
+
+.lista-admin-cabeca {
+  display: grid;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--nevoa);
+  color: var(--tinta-3);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.linha-admin-itens {
+  font-weight: 600;
+  text-align: right;
+}
+
+.lista-admin-cabeca span:last-child {
+  text-align: right;
+}
+
+.linha-admin > .linha-admin-itens.zerado {
+  color: var(--atencao-texto);
+}
+
+.lista-vazia {
+  padding: 16px;
+  border: 1px dashed var(--linha-forte);
+  border-radius: var(--raio-painel);
+  color: var(--tinta-3);
+}
+
+.icone-grupo {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--raio);
+  background: var(--nevoa);
+  color: var(--mata);
+}
+
+.etiqueta-voce {
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: var(--raio-etiqueta);
+  background: var(--folha);
+  color: var(--mata);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.linha-admin > .estado-acesso.pendente {
+  color: var(--atencao-texto);
+  font-weight: 600;
+}
+
+.linha-admin.estatica {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+/* ---------- Criar usuário e conta ---------- */
+.tipo-usuario {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 640px;
+  margin-bottom: 28px;
+}
+
+.tipo-opcao {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--linha);
+  border-radius: var(--raio-painel);
+  background: var(--papel);
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
+}
+
+.tipo-opcao svg {
+  color: var(--verde-texto);
+}
+
+.tipo-opcao strong {
+  font-size: var(--t-md);
+}
+
+.tipo-opcao span {
+  color: var(--tinta-2);
+  font-size: var(--t-sm);
+}
+
+.tipo-opcao[aria-checked='true'] {
+  border-color: var(--mata);
+  background: var(--folha);
+  box-shadow: inset 0 0 0 1px var(--mata);
+}
+
+.formulario-admin {
+  max-width: 560px;
+  gap: 28px;
+}
+
+.formulario-admin legend.etapa-titulo {
+  margin-bottom: 2px;
+  padding: 0;
+  font-weight: 700;
+}
+
+.aviso-primeiro-acesso {
+  max-width: 560px;
+  border-left-color: #d9a400;
+  background: var(--atencao-fundo);
+  color: var(--atencao-texto);
+}
+
+@media (hover: hover) {
+  a.linha-admin:hover {
+    background: var(--nevoa);
+  }
+
+  a.linha-admin:hover .linha-admin-nome strong {
+    color: var(--verde-texto);
+  }
+
+  .tipo-opcao:hover:not([aria-checked='true']) {
+    border-color: var(--verde-texto);
+    transform: translateY(-1px);
+  }
+
+  .aba:hover:not([aria-selected='true']) {
+    color: var(--tinta);
+  }
+}
+
+@media (max-width: 960px) {
+  .indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .graficos,
+  .listas-painel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .barras-h li {
+    grid-template-columns: minmax(90px, 40%) minmax(0, 1fr);
+  }
+
+  .faixas li {
+    grid-template-columns: minmax(0, 1fr) 76px;
+    row-gap: 0;
+  }
+
+  .faixas li .barras-h-rotulo {
+    grid-column: 1 / -1;
+  }
+
+  .faixa-eixo {
+    grid-template-columns: minmax(0, 1fr) 76px;
+  }
+
+  .faixa-eixo .barras-h-rotulo {
+    display: none;
+  }
+
+  .grafico {
+    padding: 16px;
+  }
+
+  .grafico-topo {
+    flex-direction: column;
+  }
+
+  .lista-admin-cabeca {
+    display: none;
+  }
+
+  .linha-admin,
+  .tabela-lojas .linha-admin {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .linha-admin > :nth-child(2) {
+    grid-row: 2;
+    grid-column: 1;
+  }
+
+  .linha-admin > :last-child {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+  }
+
+  .tabela-lojas .linha-admin > :nth-child(3) {
+    display: none; /* telefone: some no celular, continua na página da loja */
+  }
+
+  .tipo-usuario {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

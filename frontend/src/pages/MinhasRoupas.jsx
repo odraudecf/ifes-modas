@@ -11,6 +11,9 @@ import { GENEROS, PECAS, TAMANHOS_CALCA, compararTamanhos, descreverItem, genero
 
 const OPCOES_PECA = PECAS.map((p) => ({ valor: p.id, rotulo: p.nome, imagem: p.imagem }))
 
+// Onde o catálogo é gravado. A loja usa as próprias rotas; o admin passa as rotas da loja que está editando.
+const ROTAS_DA_LOJA = { criar: '/api/uniformes', item: (id) => `/api/uniformes/${id}` }
+
 /** RF05–RF07: catálogo da loja. Adicionar abre um painel onde se marcam vários tamanhos de uma vez. */
 export default function MinhasRoupas() {
   const { dados, erro, carregando, recarregar } = useApi('/api/uniformes/minhas', { auth: true })
@@ -20,8 +23,13 @@ export default function MinhasRoupas() {
   return <Catalogo inicial={dados} />
 }
 
-function Catalogo({ inicial }) {
-  const location = useLocation()
+/**
+ * Catálogo editável. `embutido` = dentro de outra página (admin), com título menor e sem os avisos
+ * que chegam pela navegação (boas-vindas do cadastro, filtro vindo da visão geral).
+ */
+export function Catalogo({ inicial, rotas = ROTAS_DA_LOJA, embutido = false }) {
+  const navegacao = useLocation()
+  const location = embutido ? { state: null } : navegacao
   const [itens, setItens] = useState(inicial)
   // Vindo da visão geral: a peça clicada já chega filtrada (ou com o "Adicionar" aberto nela).
   const [filtro, setFiltro] = useState(location.state?.filtro ?? 'todas')
@@ -55,7 +63,7 @@ function Catalogo({ inicial }) {
     }
     setConfirmarExclusao(null)
     try {
-      await api(`/api/uniformes/${item.id}`, { method: 'DELETE', auth: true })
+      await api(rotas.item(item.id), { method: 'DELETE', auth: true })
       setItens((lista) => lista.filter((i) => i.id !== item.id))
       setMensagem({ tipo: 'sucesso', texto: `${descreverItem(item)} excluída.` })
     } catch (err) {
@@ -75,9 +83,9 @@ function Catalogo({ inicial }) {
 
   return (
     <>
-      <div className="painel-cabeca com-acao">
+      <div className={`painel-cabeca com-acao${embutido ? ' embutido' : ''}`}>
         <div>
-          <h1>Roupas</h1>
+          {embutido ? <h2 className="sr-only">Roupas</h2> : <h1>Roupas</h1>}
           <p>{itens.length === 1 ? '1 item cadastrado' : `${itens.length} itens cadastrados`}. Cada item é uma peça, um gênero e um tamanho.</p>
         </div>
         <button type="button" className="botao grande" onClick={() => setPainel({ item: null })}>
@@ -154,13 +162,13 @@ function Catalogo({ inicial }) {
         </>
       )}
 
-      {painel && <PainelRoupa item={painel.item} itens={itens} ultimoNovo={ultimoNovo} fechar={() => setPainel(null)} aoSalvar={aoSalvar} />}
+      {painel && <PainelRoupa item={painel.item} itens={itens} rotas={rotas} ultimoNovo={ultimoNovo} fechar={() => setPainel(null)} aoSalvar={aoSalvar} />}
     </>
   )
 }
 
 /** Painel lateral (dialog nativo: foco preso, Esc fecha) para adicionar ou alterar roupas. */
-function PainelRoupa({ item, itens, ultimoNovo, fechar, aoSalvar }) {
+function PainelRoupa({ item, itens, rotas, ultimoNovo, fechar, aoSalvar }) {
   const dialogRef = useRef(null)
   const editando = item !== null
   const [form, setForm] = useState(() => (editando
@@ -210,7 +218,7 @@ function PainelRoupa({ item, itens, ultimoNovo, fechar, aoSalvar }) {
 
     if (editando) {
       try {
-        const alterado = await api(`/api/uniformes/${item.id}`, { method: 'PUT', body: { ...base, tamanho: tamanhos[0] }, auth: true })
+        const alterado = await api(rotas.item(item.id), { method: 'PUT', body: { ...base, tamanho: tamanhos[0] }, auth: true })
         aoSalvar({ alterado, texto: `${descreverItem(alterado)} alterada.` })
       } catch (err) {
         setErro(err.message)
@@ -224,7 +232,7 @@ function PainelRoupa({ item, itens, ultimoNovo, fechar, aoSalvar }) {
     const criados = []
     try {
       for (const tamanho of [...tamanhos].sort(compararTamanhos)) {
-        criados.push(await api('/api/uniformes', { method: 'POST', body: { ...base, tamanho }, auth: true }))
+        criados.push(await api(rotas.criar, { method: 'POST', body: { ...base, tamanho }, auth: true }))
       }
       const qtd = criados.length === 1 ? `Tamanho ${criados[0].tamanho}` : `${criados.length} tamanhos`
       aoSalvar({ criados, form, texto: `${qtd} de ${peca.nome.toLowerCase()} ${generoNaPeca(form.genero)} adicionado${criados.length > 1 ? 's' : ''}.` })

@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using IfesModas.Api;
 using IfesModas.Api.Data;
+using IfesModas.Api.Domain;
 using IfesModas.Api.Errors;
 using IfesModas.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,6 +33,7 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<LojaService>();
 builder.Services.AddScoped<UniformeService>();
+builder.Services.AddScoped<AdminService>();
 builder.Services.Configure<CadastroOptions>(builder.Configuration.GetSection(CadastroOptions.Secao));
 builder.Services.AddHttpClient<ConsultaCnpjService>(c =>
 {
@@ -59,10 +61,21 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = TokenService.ChaveDeAssinatura(jwt.Value.Key),
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromMinutes(1)
+            ClockSkew = TimeSpan.FromMinutes(1),
+            RoleClaimType = "role"
         };
     });
-builder.Services.AddAuthorization();
+
+// ---------- Autorização por papel (loja x admin) ----------
+// Os ids de loja e de admin são sequências diferentes: sem estas políticas, o admin de id 1
+// conseguiria usar as rotas da loja de id 1. Cada papel só entra nas próprias rotas.
+builder.Services.AddAuthorizationBuilder()
+    // Tokens emitidos antes dos papéis não têm "role": eram todos de loja.
+    .AddPolicy(Politicas.Loja, p => p.RequireAuthenticatedUser()
+        .RequireAssertion(c => c.User.FindFirst("role")?.Value is null or Papeis.Loja))
+    .AddPolicy(Politicas.AdminConta, p => p.RequireRole(Papeis.Admin))
+    .AddPolicy(Politicas.Admin, p => p.RequireRole(Papeis.Admin)
+        .RequireAssertion(c => !c.User.HasClaim(Papeis.ClaimTrocarAcesso, "true")));
 
 // ---------- CORS: só o front publicado (e o Vite local) pode chamar a API pelo navegador ----------
 // Aceita a origem com ou sem esquema ("ifes-modas.onrender.com" vira "https://ifes-modas.onrender.com").
@@ -139,6 +152,8 @@ using (var scope = app.Services.CreateScope())
 
     if (app.Configuration.GetValue("Seed:Enabled", true))
         await DbSeeder.SeedAsync(db);
+
+    await DbSeeder.SeedAdminAsync(db); // sempre: garante o primeiro acesso do admin
 }
 
 // ---------- Pipeline HTTP ----------

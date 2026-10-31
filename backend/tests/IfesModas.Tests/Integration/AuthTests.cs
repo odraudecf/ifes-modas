@@ -18,7 +18,7 @@ public class AuthTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
         var auth = await resp.Content.ReadFromJsonAsync<AuthResponse>(Json);
         Assert.False(string.IsNullOrWhiteSpace(auth!.Token));
-        Assert.Equal("Loja Teste", auth.Loja.Nome);
+        Assert.Equal("Loja Teste", auth.Loja!.Nome);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class AuthTests(ApiFactory factory) : IClassFixture<ApiFactory>
 
         Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
         var problema = await resp.Content.ReadFromJsonAsync<ProblemDetails>(Json);
-        Assert.Equal("CNPJ ou senha inválidos.", problema!.Title);
+        Assert.Equal("CNPJ, usuário ou senha inválidos.", problema!.Title);
     }
 
     private static string Cnpj_com_mascara(string c) => $"{c[..2]}.{c[2..5]}.{c[5..8]}/{c[8..12]}-{c[12..]}";

@@ -13,7 +13,7 @@ Os itens avaliados são: slides, tempo, demonstração ao vivo, caminho no códi
 | 5 | Antes × depois | Tabela do README | 1:00 |
 | 6 | **Demo ao vivo** | Ver roteiro abaixo | 4:00 |
 | 7 | **Caminho no código** | Exclusão de um uniforme, do clique ao `DELETE` (`ARQUITETURA.md`) | 2:00 |
-| 8 | Testes | 80 testes; `WebApplicationFactory`; **teste de mutação** ao vivo | 1:30 |
+| 8 | Testes | 90 testes; `WebApplicationFactory`; **teste de mutação** ao vivo | 1:30 |
 | 9 | CI/CD | Diagrama push → Actions → Render; mostrar um run verde | 1:00 |
 | 10 | **IA: teste e erro** | Como trabalhamos + 3 erros da IA (CNPJ de empresa real, região do banco, mensagens em inglês) | 1:30 |
 | 11 | Fechamento | O que aprendemos; próximos passos | 0:30 |
@@ -26,8 +26,9 @@ Os itens avaliados são: slides, tempo, demonstração ao vivo, caminho no códi
 2. **API sem token (Swagger):** `GET /api/lojas` funciona. `POST /api/uniformes` sem token dá **401**.
 3. **Login:** Área da loja → CNPJ `20.240.101/0001-47` / `ifes2024` → Visão geral → Roupas.
 4. **CRUD:** Adicionar roupas → *Calça*, *Masculino*, marcar **46 e 48** de uma vez, R$ 69,90 (os números já cadastrados aparecem riscados) → editar o preço de um deles → Ver minha página e mostrar os itens → excluir (confirmação no próprio botão).
-5. **Segurança ao vivo (Swagger):** com o token da loja 1, tentar `DELETE /api/uniformes/{id de uniforme da loja 2}` dá **403**. Mostrar a linha `if (uniforme.LojaId != lojaId)` no `UniformeService.cs`.
-6. **Deploy ao vivo (opcional, se o tempo deixar):** mudar um texto do front, `git push` e mostrar o Actions rodando os testes e disparando o deploy.
+5. **Administração:** sair e entrar com o usuário do admin → Painel (passar o mouse nos gráficos, "Ver tabela") → Lojas → abrir uma loja e mudar um preço → Usuários. Mostrar no Swagger que um token de loja recebe **403** em `/api/admin/painel`.
+6. **Segurança ao vivo (Swagger):** com o token da loja 1, tentar `DELETE /api/uniformes/{id de uniforme da loja 2}` dá **403**. Mostrar a linha `if (uniforme.LojaId != lojaId)` no `UniformeService.cs`.
+7. **Deploy ao vivo (opcional, se o tempo deixar):** mudar um texto do front, `git push` e mostrar o Actions rodando os testes e disparando o deploy.
 
 ## Teste de mutação (para o slide 8 / arguição)
 

@@ -1,3 +1,4 @@
+using IfesModas.Api.Domain;
 using IfesModas.Api.Dtos;
 using IfesModas.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -7,10 +8,11 @@ namespace IfesModas.Api.Controllers;
 
 /// <summary>Gerenciamento do catálogo da loja logada. Todas as rotas exigem token.</summary>
 [ApiController]
-[Authorize]
+[Authorize(Policy = Politicas.Loja)]
 [Route("api/uniformes")]
 [Produces("application/json")]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class UniformesController(UniformeService uniformes) : ControllerBase
 {
     /// <summary>Uniformes cadastrados pela loja logada.</summary>

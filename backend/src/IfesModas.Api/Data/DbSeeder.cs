@@ -36,6 +36,27 @@ public static class DbSeeder
         await db.SaveChangesAsync(ct);
     }
 
+    /// <summary>Usuário do primeiro acesso do admin. A senha precisa ser trocada logo no primeiro login.</summary>
+    public const string AdminPadrao = "Admin";
+    public const string SenhaAdminPadrao = "123";
+
+    /// <summary>
+    /// Garante que exista ao menos um administrador. Roda em toda subida (também em produção) e
+    /// só cria o "Admin" se a tabela estiver vazia, então nunca recria nem sobrescreve.
+    /// </summary>
+    public static async Task SeedAdminAsync(AppDbContext db, CancellationToken ct = default)
+    {
+        if (await db.Administradores.AnyAsync(ct)) return;
+
+        db.Administradores.Add(new Administrador
+        {
+            Usuario = AdminPadrao,
+            SenhaHash = BCrypt.Net.BCrypt.HashPassword(SenhaAdminPadrao),
+            DeveTrocarAcesso = true
+        });
+        await db.SaveChangesAsync(ct);
+    }
+
     private static Loja NovaLoja(string cnpj, string nome, string telefone, string rua, string numero, string bairro,
         string cidade, string uf, string hash) => new()
     {
