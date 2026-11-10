@@ -11,6 +11,10 @@ public static class RegrasUniforme
     public const int TamanhoCalcaMaximo = 60;
     public const decimal PrecoMaximo = 9_999.99m;
 
+    // Texto fixo, e não {PrecoMaximo:N2}: o container do Render roda com a cultura invariante,
+    // e o N2 saía "9,999.99" (formato americano) no meio de uma mensagem em português.
+    private const string PrecoMaximoTexto = "9.999,99";
+
     /// <summary>Devolve a lista de erros (vazia se o uniforme é válido), no formato campo → mensagem.</summary>
     public static Dictionary<string, string[]> Validar(TipoUniforme tipo, ModeloCamisa? modelo, string? tamanho, decimal preco)
     {
@@ -33,7 +37,7 @@ public static class RegrasUniforme
             erros["modelo"] = ["Somente camisas têm modelo."];
 
         if (preco <= 0 || preco > PrecoMaximo)
-            erros["preco"] = [$"O preço deve estar entre R$ 0,01 e R$ {PrecoMaximo:N2}."];
+            erros["preco"] = [$"O preço deve estar entre R$ 0,01 e R$ {PrecoMaximoTexto}."];
 
         return erros;
     }

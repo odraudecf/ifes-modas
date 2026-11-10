@@ -106,7 +106,7 @@ cd backend
 dotnet tool install --global dotnet-ef                         # uma vez
 dotnet ef database update --project src/IfesModas.Api           # opcional: a API também aplica as migrations ao subir
 dotnet run --project src/IfesModas.Api --launch-profile http    # http://localhost:5112/swagger
-dotnet test                                                     # 99 testes (unitários + integração)
+dotnet test                                                     # 100 testes (unitários + integração)
 
 # Front
 cd ../frontend
