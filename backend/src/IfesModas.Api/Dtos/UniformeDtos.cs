@@ -12,3 +12,11 @@ public record UniformeRequest(
     [Required(ErrorMessage = "Informe o preço.")] decimal? Preco);
 
 public record UniformeDto(int Id, TipoUniforme Tipo, ModeloCamisa? Modelo, Genero Genero, string Tamanho, decimal Preco);
+
+/// <summary>Item na listagem pública: o uniforme com a loja que vende.</summary>
+public record UniformePublicoDto(int Id, TipoUniforme Tipo, ModeloCamisa? Modelo, Genero Genero, string Tamanho, decimal Preco, LojaDoItemDto Loja);
+
+public record LojaDoItemDto(int Id, string Nome, string Cidade, string Uf);
+
+/// <summary>Uma página de resultados: os itens desta página e os números para navegar entre as páginas.</summary>
+public record PaginaDto<T>(IReadOnlyList<T> Itens, int Pagina, int PorPagina, int Total, int TotalPaginas);

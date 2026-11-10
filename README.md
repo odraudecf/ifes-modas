@@ -1,7 +1,7 @@
 # Ifes Modas API
 **Nicho:** IFES MODAS - Site de Direcionamento e Compra de Uniformes Escolares · **Aluno:** Eduardo Castro Fernandes (@odraudecf)
 **API no ar:** https://ifes-modas-api.onrender.com/swagger
-**Saúde e versão:** https://ifes-modas-api.onrender.com/health · _(a rota `/api/versao` ainda não existe)_
+**Saúde e versão:** https://ifes-modas-api.onrender.com/health · https://ifes-modas-api.onrender.com/api/versao (commit publicado, igual ao último da `main`)
 **Front-end:** https://ifes-modas.onrender.com
 
 [![CI/CD](https://github.com/odraudecf/ifes-modas/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/odraudecf/ifes-modas/actions/workflows/ci-cd.yml)
@@ -32,6 +32,8 @@ Erros em **ProblemDetails** (RFC 9457), em português. "Loja" e "admin" são os 
 | GET | /api/cnpj/{cnpj} | todos | 200, 400, 404, 429, 503 |
 | GET | /api/lojas?uf= | todos | 200 |
 | GET | /api/lojas/{id} | todos | 200, 404 |
+| GET | /api/uniformes?tipo=&tamanho=&lojaId=&pagina=&porPagina= (paginada) | todos | 200, 400 |
+| GET | /api/uniformes/{id} | todos | 200, 404 |
 | GET | /api/lojas/me | loja | 200, 401, 403 |
 | PUT | /api/lojas/me | loja | 200, 400, 401, 403 |
 | GET | /api/uniformes/minhas | loja | 200, 401, 403 |
@@ -50,14 +52,17 @@ Erros em **ProblemDetails** (RFC 9457), em português. "Loja" e "admin" são os 
 | POST | /api/admin/usuarios/lojas | admin | 201, 400, 401, 403, 409 |
 | GET | /api/admin/conta | admin (mesmo com a troca pendente) | 200, 401, 403 |
 | PUT | /api/admin/conta | admin (mesmo com a troca pendente) | 200, 400, 401, 403, 409 |
+| GET | /api/versao | todos | 200 |
 | GET | /health | todos | 200 |
 
 **Testar pelo Swagger:** `POST /api/auth/login` com uma conta abaixo → copie o `token` → botão **Authorize** → cole o token.
 
 ## Rotas para o corretor testar (sem token)
-- Listagem (agrupada por estado e cidade; não é paginada): https://ifes-modas-api.onrender.com/api/lojas
+- Listagem paginada dos uniformes: https://ifes-modas-api.onrender.com/api/uniformes?pagina=1&porPagina=5 · com filtro: https://ifes-modas-api.onrender.com/api/uniformes?tipo=Calca&tamanho=42 · fora do limite (400): https://ifes-modas-api.onrender.com/api/uniformes?porPagina=500
+- Detalhe de um uniforme: https://ifes-modas-api.onrender.com/api/uniformes/1
+- Lojas agrupadas por estado e cidade: https://ifes-modas-api.onrender.com/api/lojas
 - Filtro que encontra algo: https://ifes-modas-api.onrender.com/api/lojas?uf=ES · sem resultado (200 com lista vazia): https://ifes-modas-api.onrender.com/api/lojas?uf=AC
-- Detalhe: https://ifes-modas-api.onrender.com/api/lojas/1 · inexistente (404): https://ifes-modas-api.onrender.com/api/lojas/9999
+- Detalhe da loja (com o catálogo): https://ifes-modas-api.onrender.com/api/lojas/1 · inexistente (404): https://ifes-modas-api.onrender.com/api/lojas/9999
 - Protegida (401 sem token): https://ifes-modas-api.onrender.com/api/uniformes/minhas
 - Protegida do admin (401 sem token): https://ifes-modas-api.onrender.com/api/admin/painel
 
@@ -101,7 +106,7 @@ cd backend
 dotnet tool install --global dotnet-ef                         # uma vez
 dotnet ef database update --project src/IfesModas.Api           # opcional: a API também aplica as migrations ao subir
 dotnet run --project src/IfesModas.Api --launch-profile http    # http://localhost:5112/swagger
-dotnet test                                                     # 91 testes (unitários + integração)
+dotnet test                                                     # 99 testes (unitários + integração)
 
 # Front
 cd ../frontend

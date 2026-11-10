@@ -292,3 +292,17 @@ Pedido do grupo: hovers e mais coisas clicáveis, para o site "responder" ao usu
 
 **Conta de admin para a correção.** O `Admin`/`123` não serve como conta de teste: ele é obrigado a trocar o acesso, então o primeiro que entrasse trocaria a senha e ela pararia de valer para os outros. Por isso os dados de demonstração criam também a conta **`corretor` / `ifes2026`**, sem troca obrigatória, publicada no README. Ela só é criada se ainda não existir, e um teste (91 no total) prova que ela entra direto no painel.
 
+
+---
+
+## Etapa 13 — Ajustes para a demonstração do seminário
+
+Conferimos a API contra a lista que o professor marca na demonstração ao vivo e faltavam duas coisas:
+
+- **`GET /api/versao`** (item 1: "o código do commit igual ao último do main"). O Render preenche `RENDER_GIT_COMMIT` e `RENDER_GIT_BRANCH` em cada deploy; a rota só devolve esses valores, mais o ambiente e a hora em que a API subiu. Fora do Render aparece `"local"`. Arquivo: `Controllers/VersaoController.cs`.
+- **Listagem pública paginada + detalhe por id** (item 4). `GET /api/uniformes?pagina=1&porPagina=10` lista os uniformes de todas as lojas, dos mais recentes para os mais antigos, com filtros opcionais `tipo`, `tamanho` e `lojaId`. A resposta traz `itens`, `pagina`, `porPagina`, `total` e `totalPaginas`. `GET /api/uniformes/{id}` mostra um item com a loja que vende. As duas rotas têm `[AllowAnonymous]`; o resto do controller continua exigindo o token da loja.
+  - **No banco:** `CountAsync` vira `SELECT COUNT(*)` e `Skip/Take` viram `OFFSET/LIMIT`, então só a página pedida sai do Postgres. A projeção para o DTO vira um `JOIN` com `lojas` e `enderecos` e nunca lê o `senha_hash`.
+  - **Validação:** `porPagina` de 1 a 50 e `pagina` a partir de 1 (`[Range]`). Fora disso dá **400** com o campo errado no ValidationProblemDetails, sem nenhum código nosso: o `[ApiController]` faz isso sozinho.
+- **`Location` do `POST /api/uniformes`:** apontava para `/api/uniformes/minhas` (a lista, que exige token). Agora aponta para `/api/uniformes/{id}`, o detalhe do item criado.
+
+**Testes:** 8 novos, total de **99** (versão com e sem Render, Location que abre sem token, página 1 e 2 na ordem certa, filtros, 400 nos limites, 404 no detalhe). **Teste de mutação:** sem o `Skip`, o teste da página 2 falhou (`Collections differ`). Desfizemos com a cópia do arquivo, não com o git (lição do erro nº 14).
