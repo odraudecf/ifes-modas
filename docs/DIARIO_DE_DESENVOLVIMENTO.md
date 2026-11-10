@@ -308,3 +308,7 @@ Conferimos a API contra a lista que o professor marca na demonstração ao vivo 
 **Testes:** 8 novos, total de **99** (versão com e sem Render, Location que abre sem token, página 1 e 2 na ordem certa, filtros, 400 nos limites, 404 no detalhe). **Teste de mutação:** sem o `Skip`, o teste da página 2 falhou (`Collections differ`). Desfizemos com a cópia do arquivo, não com o git (lição do erro nº 14).
 
 **Ensaio da demonstração no ambiente de teste (Postgres de verdade, com `curl`):** versão com o commit certo, 201 com `Location: /api/uniformes/122`, o item no topo da listagem paginada e no detalhe sem token, PUT 200, DELETE 204, 403 da loja B no item da loja A (PUT e DELETE), 401 sem token, 403 do token de loja em `/api/admin/painel`, 400 com três campos errados e 409 no CNPJ repetido. O ensaio achou um bug: a mensagem de preço saía "R$ 9,999.99" no Render (erro nº 18 do `REGISTRO_IA.md`). Corrigido com um teste que força a cultura do servidor (**100** testes).
+
+**Mutação da regra do 409 (para o slide da regra):** com `if (false && await db.Lojas.AnyAsync(...))` no `AuthService.CriarLojaAsync`, o teste `Cadastro_com_cnpj_repetido_devolve_409` falhou com `Expected: Conflict / Actual: Created`. Restaurado com a cópia do arquivo.
+
+**Roteiro do seminário reescrito** (`docs/ROTEIRO_SEMINARIO.md`) para o formato da Parte 2: 10 minutos, só o back-end, os 8 itens da demonstração com os JSONs prontos, o caminho do `DELETE` no código e as perguntas prováveis da arguição.
