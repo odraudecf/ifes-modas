@@ -15,6 +15,43 @@ public class UniformeService(AppDbContext db)
         return Ordenar(itens).Select(ParaDto).ToList();
     }
 
+    /// <summary>
+    /// Listagem pública e paginada de todos os uniformes, dos mais recentes para os mais antigos.
+    /// A contagem e o Skip/Take viram COUNT e LIMIT/OFFSET no Postgres: só a página pedida sai do banco.
+    /// </summary>
+    public async Task<PaginaDto<UniformePublicoDto>> ListarPublicoAsync(
+        TipoUniforme? tipo, string? tamanho, int? lojaId, int pagina, int porPagina, CancellationToken ct)
+    {
+        var consulta = db.Uniformes.AsNoTracking();
+        if (tipo is not null) consulta = consulta.Where(u => u.Tipo == tipo);
+        if (!string.IsNullOrWhiteSpace(tamanho))
+        {
+            var t = RegrasUniforme.NormalizarTamanho(tamanho);
+            consulta = consulta.Where(u => u.Tamanho == t);
+        }
+        if (lojaId is not null) consulta = consulta.Where(u => u.LojaId == lojaId);
+
+        var total = await consulta.CountAsync(ct);
+        var itens = await consulta
+            .OrderByDescending(u => u.Id)
+            .Skip((pagina - 1) * porPagina)
+            .Take(porPagina)
+            .Select(ParaPublico)
+            .ToListAsync(ct);
+
+        return new PaginaDto<UniformePublicoDto>(itens, pagina, porPagina, total, (int)Math.Ceiling(total / (double)porPagina));
+    }
+
+    /// <summary>Detalhe público de um uniforme, com a loja que vende.</summary>
+    public async Task<UniformePublicoDto> ObterPublicoAsync(int id, CancellationToken ct) =>
+        await db.Uniformes.AsNoTracking().Where(u => u.Id == id).Select(ParaPublico).FirstOrDefaultAsync(ct)
+        ?? throw ApiException.NaoEncontrado("Uniforme não encontrado.");
+
+    // Projeção em expressão: o EF traduz para um SELECT com JOIN em lojas e enderecos (sem SenhaHash).
+    private static readonly System.Linq.Expressions.Expression<Func<Uniforme, UniformePublicoDto>> ParaPublico = u =>
+        new UniformePublicoDto(u.Id, u.Tipo, u.Modelo, u.Genero, u.Tamanho, u.Preco,
+            new LojaDoItemDto(u.Loja.Id, u.Loja.Nome, u.Loja.Endereco.Cidade, u.Loja.Endereco.Uf));
+
     public async Task<UniformeDto> CriarAsync(int lojaId, UniformeRequest req, CancellationToken ct)
     {
         Validar(req);

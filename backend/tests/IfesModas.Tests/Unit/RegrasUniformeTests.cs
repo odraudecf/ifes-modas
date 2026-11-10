@@ -13,6 +13,22 @@ public class RegrasUniformeTests
         Assert.Empty(RegrasUniforme.Validar(tipo, modelo, tamanho, 40m));
 
     [Fact]
+    public void Mensagem_do_preco_sai_em_reais_mesmo_com_a_cultura_do_servidor()
+    {
+        var anterior = System.Globalization.CultureInfo.CurrentCulture;
+        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture; // como no Render
+        try
+        {
+            var erro = RegrasUniforme.Validar(TipoUniforme.Camisa, ModeloCamisa.Padrao, "M", -5m)["preco"].Single();
+            Assert.Equal("O preço deve estar entre R$ 0,01 e R$ 9.999,99.", erro);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = anterior;
+        }
+    }
+
+    [Fact]
     public void Camisa_sem_modelo_e_invalida() =>
         Assert.Contains("modelo", RegrasUniforme.Validar(TipoUniforme.Camisa, null, "M", 40m).Keys);
 
